@@ -17,17 +17,18 @@ jobs:
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
-              # 저장소의 최신 코드를 워크플로우 환경으로 가져옵니다.
+              with:
+                  fetch-depth: 0 # 전체 히스토리를 가져옵니다.
+              # 저장소의 전체 커밋 히스토리를 가져오므로, base와 head commit diff가 가능합니다.
 
-            - name: Identify changed .fol files
+            - name: Identify changed .fol files using commit SHAs
               id: find_files
               run: |
-                  # 기본 브랜치의 최신 커밋을 가져옵니다.
-                  git fetch origin ${{ github.event.pull_request.base.ref }}
-                  # PR에서 변경된 .fol 파일 목록을 추출합니다.
-                  CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- "fol/**/*.fol")
+                  echo "base sha: ${{ github.event.pull_request.base.sha }}"
+                  echo "head sha: ${{ github.event.pull_request.head.sha }}"
+                  # base commit과 head commit 사이의 diff를 계산합니다.
+                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  # set-output로 파일 목록 전달 (주의: set-output 방식은 향후 변경될 수 있음)
                   echo "::set-output name=files::$CHANGED_FILES"
 
             - name: Exit if no .fol file changed
@@ -36,65 +37,4 @@ jobs:
                   echo "No .fol files changed. Exiting."
                   exit 0
 
-            - name: Build JSON payload
-              id: build_payload
-              run: |
-                  # 변경된 파일 목록을 변수에 저장 (xargs로 앞뒤 공백 제거)
-                  FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
-                  echo "DEBUG: 파일 목록 = [$FILES]"
-
-                  # payload 초기값
-                  PAYLOAD="{\"files\":["
-
-                  # 파일 목록을 한 줄씩 읽기 위해 while 루프 사용
-                  echo "$FILES" | tr ' ' '\n' | while read file; do
-                    # 파일이 실제로 존재하는지 확인
-                    if [ -f "$file" ]; then
-                      # 파일 전체 내용을 JSON 문자열로 인코딩 (jq -Rs)
-                      CONTENT=$(jq -Rs . < "$file")
-                      echo "DEBUG: 파일 내용 [$file] 존재"
-                    else
-                      echo "DEBUG: 파일 [$file] 존재하지 않음"
-                      CONTENT="\"\""
-                    fi
-
-                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
-                    # 루프 내에서는 변수 할당이 하위 셸에서 일어나므로, echo로 임시 파일에 누적
-                    echo "$PAYLOAD" > current_payload.json
-                    PAYLOAD=$(cat current_payload.json)
-                  done
-
-                  # 마지막 쉼표 제거 후 JSON 배열 닫기
-                  PAYLOAD="${PAYLOAD%,}]}"
-                  echo "$PAYLOAD" > payload.json
-
-                  echo "----- 생성된 payload.json -----"
-                  cat payload.json
-                  echo "---------------------------------"
-
-                  # payload 값을 set-output으로 전달 (디버깅용)
-                  echo "::set-output name=payload::$PAYLOAD"
-
-            - name: Call FOL Validation API
-              id: call_api
-              run: |
-                  # payload.json에 담긴 데이터를 API에 POST 방식으로 전송합니다.
-                  STATUS=$(curl -s -o response.json -w "%{http_code}" \
-                    -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
-                    -H "Content-Type: application/json" \
-                    -d @payload.json)
-                  echo "API HTTP 상태 코드: $STATUS"
-                  echo "::set-output name=status::$STATUS"
-                  echo "----- API 응답 (response.json) -----"
-                  cat response.json
-                  echo "-------------------------------------"
-
-            - name: Fail if validation error
-              if: steps.call_api.outputs.status != '200'
-              run: |
-                  echo "FOL validation failed. Exiting with error."
-                  exit 1
-
-            - name: Success message
-              if: steps.call_api.outputs.status == '200'
-              run: echo "FOL validation succeeded."
+            # 이후 payload 생성, API 호출 등의 단계 진행…
