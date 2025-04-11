@@ -5,82 +5,79 @@ on:
         branches: [main]
         paths:
             - "fol/**/*.fol"
+            - "fol/*.fol" # fol/ 바로 아래 파일도 포함
 
 jobs:
     validate-fol:
         runs-on: ubuntu-latest
-
         permissions:
             contents: read
-            checks: write # ✅ Check Run에 꼭 필요
+            checks: write # Check Run 결과 기록용 권한
             pull-requests: read
 
         steps:
-            - name: Checkout repo
+            - name: Checkout Repository
               uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
 
-            - name: Get changed .fol files
-              id: diff
+            - name: Identify changed .fol files
+              id: find_files
               run: |
-                  git fetch origin ${{ github.event.pull_request.base.ref }}
-                  CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'fol/**/*.fol')
-                  echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-                  echo "$CHANGED" >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
+                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+                  # fol/ 바로 아래 파일와 하위 디렉토리 파일 모두 비교
+                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
+                  echo "CHANGED_FILES: [$CHANGED_FILES]"
+                  echo "::set-output name=files::$CHANGED_FILES"
 
-            - name: Fail early if no .fol files changed
-              if: ${{ steps.diff.outputs.changed_files == '' }}
+            - name: Exit if no .fol file changed
+              if: steps.find_files.outputs.files == ''
               run: |
-                  echo "No .fol file changes detected. Skipping validation."
+                  echo "No .fol files changed. Exiting."
+                  exit 0
 
-            - name: Build JSON payload & summary
-              id: build
+            - name: Build JSON payload
+              id: build_payload
               run: |
-                  FILE_LIST=$(echo "${{ steps.diff.outputs.changed_files }}" | tr '\n' ' ')
+                  FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
+                  echo "DEBUG: Files = [$FILES]"
                   PAYLOAD="{\"files\":["
-                  SUMMARY=""
-                  for file in $FILE_LIST; do
-                    ENCODED=$(jq -Rs < "$file")
-                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${ENCODED}},"
-
-                    # 요약
-                    SUMMARY="${SUMMARY}\n📄 *${file}*"
-                    CONSTANTS=$(grep -v '^#' "$file" | grep -E '^[A-Z][A-Za-z0-9]*$' || true)
-                    PREDICATES=$(grep -E '^[A-Za-z0-9_]+\(' "$file" | cut -d'(' -f1 | sort | uniq || true)
-                    FACTS=$(grep -E '^[A-Za-z0-9_]+\([A-Za-z0-9_, ]+\)' "$file" || true)
-
-                    if [ -n "$CONSTANTS" ]; then
-                      SUMMARY="${SUMMARY}\n- Constants: \`$(echo "$CONSTANTS" | tr '\n' ', ' | sed 's/, $//')\`"
+                  for file in $FILES; do
+                    if [ -f "$file" ]; then
+                      CONTENT=$(jq -Rs . < "$file")
+                      echo "DEBUG: File [$file] exists."
+                    else
+                      echo "DEBUG: File [$file] does not exist."
+                      CONTENT="\"\""
                     fi
-                    if [ -n "$PREDICATES" ]; then
-                      SUMMARY="${SUMMARY}\n- Predicates: \`$(echo "$PREDICATES" | tr '\n' ', ' | sed 's/, $//')\`"
-                    fi
-                    if [ -n "$FACTS" ]; then
-                      SUMMARY="${SUMMARY}\n- Facts: $(echo "$FACTS" | wc -l | xargs) assertions"
-                    fi
+                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
                   done
+                  # 마지막 쉼표 제거 후 JSON 배열 닫기
                   PAYLOAD="${PAYLOAD%,}]}"
                   echo "$PAYLOAD" > payload.json
+                  echo "----- Generated payload.json -----"
+                  cat payload.json
+                  echo "----------------------------------"
+                  echo "::set-output name=payload::$PAYLOAD"
 
-                  echo "summary<<EOF" >> $GITHUB_OUTPUT
-                  echo "$SUMMARY" >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
-
-            - name: Call FOL validation webhook
-              id: call_webhook
+            - name: Call FOL Validation API
+              id: call_api
               run: |
                   STATUS=$(curl -s -o response.json -w "%{http_code}" \
                     -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
                     -H "Content-Type: application/json" \
                     -d @payload.json)
-
-                  echo "status=$STATUS" >> $GITHUB_OUTPUT
-                  echo "body<<EOF" >> $GITHUB_OUTPUT
-                  cat response.json >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
+                  echo "::set-output name=status::$STATUS"
+                  BODY=$(cat response.json)
+                  echo "::set-output name=body::$BODY"
+                  echo "API HTTP Status Code: $STATUS"
+                  echo "----- API Response (response.json) -----"
+                  cat response.json
+                  echo "-----------------------------------------"
 
             - name: Report Check Run (Pass)
-              if: ${{ steps.call_webhook.outputs.status == '200' }}
+              if: steps.call_api.outputs.status == '200'
               uses: LouisBrunner/checks-action@v1.6.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -90,11 +87,11 @@ jobs:
                       {
                         "title": "✅ .fol 정합성 검사 통과",
                         "summary": "모든 .fol 파일이 검사를 통과했습니다.",
-                        "text": "${{ steps.build.outputs.summary }}"
+                        "text": "변경된 파일들: ${{ steps.find_files.outputs.files }}"
                       }
 
             - name: Report Check Run (Fail)
-              if: ${{ steps.call_webhook.outputs.status != '200' }}
+              if: steps.call_api.outputs.status != '200'
               uses: LouisBrunner/checks-action@v1.6.0
               with:
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -103,10 +100,10 @@ jobs:
                   output: |
                       {
                         "title": "❌ .fol 정합성 검사 실패",
-                        "summary": "Webhook 응답 상태: ${{ steps.call_webhook.outputs.status }}",
-                        "text": "${{ steps.call_webhook.outputs.body }}"
+                        "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
+                        "text": "${{ steps.call_api.outputs.body }}"
                       }
 
             - name: Fail workflow on validation error
-              if: ${{ steps.call_webhook.outputs.status != '200' }}
+              if: steps.call_api.outputs.status != '200'
               run: exit 1
