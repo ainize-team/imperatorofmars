@@ -1,4 +1,4 @@
-const mokFeed = `556ace3 (HEAD -> develop) Merged in release/1.0.8 (pull request #125)
+const mockFeed = `556ace3 (HEAD -> develop) Merged in release/1.0.8 (pull request #125)
 60b502f fix: token type standardize
 e714493 upgrade pkg ver
 0a0ca31 Merged in fix/yoojin/deposit_option (pull request #123)
@@ -21,4 +21,4 @@ f6d1a98 (origin/feature/yoojin/reject_withdraw_tweet) Update ainft-js
 9d34fc2 fix: err msg
 4bc28de feat: reply message when task not exist`;
 
-export default mokFeed;
+export default mockFeed;

@@ -1,4 +1,4 @@
-import mokFOI from "@/moks/mok_foi"
+import mockFOL from "@/moks/mockFOL"
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 
@@ -9,7 +9,7 @@ export default function FOLViewer() {
       <div>FOL</div>
       <div className="flex flex-col w-full h-full overflow-scroll mx-2 text-[0.75rem]">
         <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
-          {"```" + mokFOI + "```"}
+          {"```" + mockFOL + "```"}
         </ReactMarkdown>
       </div>
     </div>

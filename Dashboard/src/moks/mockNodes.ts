@@ -1,4 +1,4 @@
-const mokNodes: {
+const mockNodes: {
   [cid: string]: {
     children: string[],
     cid: string,
@@ -30,4 +30,4 @@ const mokNodes: {
   }
 }
 
-export default mokNodes
+export default mockNodes;
