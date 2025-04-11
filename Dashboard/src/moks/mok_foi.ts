@@ -1,4 +1,4 @@
-const mokFOI =
+const mokFOL =
 `# genesis_fol.txt 
 # First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model 
 # Represents the static, foundational knowledge of the Mars environment. 
@@ -91,4 +91,4 @@ ExistsAt(CarbonDioxide, Mars) # Implied by being the primary atmospheric compone
  
 # --- End of Genesis FOL Definition --- `;
 
-export default mokFOI;
+export default mokFOL;

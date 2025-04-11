@@ -1,5 +1,5 @@
 import FeedVeiwer from "@/components/feedViewer";
-import FOIViewer from "@/components/foiViewer";
+import FOLViewer from "@/components/folViewer";
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
       <h1 className="font-bold text-4xl">Imperator of Mars</h1>
       {/* Contents */}
       <div className="flex flex-row gap-4">
-        <FOIViewer />
+        <FOLViewer />
         <div className="flex-1 border-2 border-black h-[80vh]">Dag visualizer</div>
         <FeedVeiwer />
       </div>
