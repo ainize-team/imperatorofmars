@@ -1,0 +1,112 @@
+name: Validate FOL with Check Run
+
+on:
+    pull_request:
+        branches: [main]
+        paths:
+            - "fol/**/*.fol"
+
+jobs:
+    validate-fol:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            checks: write # ✅ Check Run에 꼭 필요
+            pull-requests: read
+
+        steps:
+            - name: Checkout repo
+              uses: actions/checkout@v3
+
+            - name: Get changed .fol files
+              id: diff
+              run: |
+                  git fetch origin ${{ github.event.pull_request.base.ref }}
+                  CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'fol/**/*.fol')
+                  echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+                  echo "$CHANGED" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Fail early if no .fol files changed
+              if: ${{ steps.diff.outputs.changed_files == '' }}
+              run: |
+                  echo "No .fol file changes detected. Skipping validation."
+
+            - name: Build JSON payload & summary
+              id: build
+              run: |
+                  FILE_LIST=$(echo "${{ steps.diff.outputs.changed_files }}" | tr '\n' ' ')
+                  PAYLOAD="{\"files\":["
+                  SUMMARY=""
+                  for file in $FILE_LIST; do
+                    ENCODED=$(jq -Rs < "$file")
+                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${ENCODED}},"
+
+                    # 요약
+                    SUMMARY="${SUMMARY}\n📄 *${file}*"
+                    CONSTANTS=$(grep -v '^#' "$file" | grep -E '^[A-Z][A-Za-z0-9]*$' || true)
+                    PREDICATES=$(grep -E '^[A-Za-z0-9_]+\(' "$file" | cut -d'(' -f1 | sort | uniq || true)
+                    FACTS=$(grep -E '^[A-Za-z0-9_]+\([A-Za-z0-9_, ]+\)' "$file" || true)
+
+                    if [ -n "$CONSTANTS" ]; then
+                      SUMMARY="${SUMMARY}\n- Constants: \`$(echo "$CONSTANTS" | tr '\n' ', ' | sed 's/, $//')\`"
+                    fi
+                    if [ -n "$PREDICATES" ]; then
+                      SUMMARY="${SUMMARY}\n- Predicates: \`$(echo "$PREDICATES" | tr '\n' ', ' | sed 's/, $//')\`"
+                    fi
+                    if [ -n "$FACTS" ]; then
+                      SUMMARY="${SUMMARY}\n- Facts: $(echo "$FACTS" | wc -l | xargs) assertions"
+                    fi
+                  done
+                  PAYLOAD="${PAYLOAD%,}]}"
+                  echo "$PAYLOAD" > payload.json
+
+                  echo "summary<<EOF" >> $GITHUB_OUTPUT
+                  echo "$SUMMARY" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Call FOL validation webhook
+              id: call_webhook
+              run: |
+                  STATUS=$(curl -s -o response.json -w "%{http_code}" \
+                    -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
+                    -H "Content-Type: application/json" \
+                    -d @payload.json)
+
+                  echo "status=$STATUS" >> $GITHUB_OUTPUT
+                  echo "body<<EOF" >> $GITHUB_OUTPUT
+                  cat response.json >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Report Check Run (Pass)
+              if: ${{ steps.call_webhook.outputs.status == '200' }}
+              uses: LouisBrunner/checks-action@v1.6.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: FOL Consistency Check
+                  conclusion: success
+                  output: |
+                      {
+                        "title": "✅ .fol 정합성 검사 통과",
+                        "summary": "모든 .fol 파일이 검사를 통과했습니다.",
+                        "text": "${{ steps.build.outputs.summary }}"
+                      }
+
+            - name: Report Check Run (Fail)
+              if: ${{ steps.call_webhook.outputs.status != '200' }}
+              uses: LouisBrunner/checks-action@v1.6.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: FOL Consistency Check
+                  conclusion: failure
+                  output: |
+                      {
+                        "title": "❌ .fol 정합성 검사 실패",
+                        "summary": "Webhook 응답 상태: ${{ steps.call_webhook.outputs.status }}",
+                        "text": "${{ steps.call_webhook.outputs.body }}"
+                      }
+
+            - name: Fail workflow on validation error
+              if: ${{ steps.call_webhook.outputs.status != '200' }}
+              run: exit 1
