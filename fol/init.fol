@@ -1,0 +1,91 @@
+# genesis_fol.txt
+# First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model
+# Represents the static, foundational knowledge of the Mars environment.
+# Date: 2025-04-05
+
+# ==============================================================================
+# Constants - Representing specific entities in the world
+# ==============================================================================
+
+Mars                # The planet itself
+ImperatorOfMars     # The central entity/character
+OlympusMons         # Major volcano
+VallesMarineris     # Major canyon system
+GaleCrater          # Significant crater
+JezeroCrater        # Significant crater, landing site for Perseverance
+Perseverance        # Exploration rover
+Curiosity           # Exploration rover
+NorthPole           # Martian North Pole region
+SouthPole           # Martian South Pole region
+WaterIce            # Substance: H2O in solid state
+CarbonDioxide       # Substance: CO2 (gas, solid)
+Rock                # General concept/type, specific rocks might be named later (e.g., RockOmega)
+Soil                # General concept/type of Martian regolith
+
+# ==============================================================================
+# Predicates - Defining properties and relationships
+# ==============================================================================
+
+# --- Types & Properties ---
+IsPlanet(object)             # Asserts that 'object' is a planet.
+IsEntity(object)             # Asserts that 'object' is a significant entity (e.g., Imperator).
+IsMountain(object)           # Asserts that 'object' is a mountain.
+IsValley(object)             # Asserts that 'object' is a valley.
+IsCrater(object)             # Asserts that 'object' is a crater.
+IsRover(object)              # Asserts that 'object' is a rover.
+IsPole(object)               # Asserts that 'object' is a polar region.
+IsSubstance(object)          # Asserts that 'object' is a substance.
+IsRock(object)               # Asserts that 'object' is a rock.
+IsSoil(object)               # Asserts that 'object' is soil/regolith.
+HasAtmosphere(planet)        # Asserts that 'planet' has an atmosphere.
+IsFrozen(substance)          # Asserts that 'substance' is in a frozen state.
+
+# --- Relationships & Locations ---
+LocatedOn(feature, planet)   # Asserts that 'feature' is located on the surface of 'planet'.
+LocatedIn(entity, location)  # Asserts that 'entity' is located within 'location' (static initial state for dynamic entities).
+ExistsAt(substance, location) # Asserts that 'substance' exists at 'location'.
+PrimaryAtmosphericComponent(planet, substance) # Asserts 'substance' is the main component of 'planet's atmosphere.
+
+# ==============================================================================
+# Facts - Specific knowledge about the Mars world (Static state at genesis)
+# ==============================================================================
+
+# --- Type Assertions ---
+IsPlanet(Mars)
+IsEntity(ImperatorOfMars)
+IsMountain(OlympusMons)
+IsValley(VallesMarineris)
+IsCrater(GaleCrater)
+IsCrater(JezeroCrater)
+IsRover(Perseverance)
+IsRover(Curiosity)
+IsPole(NorthPole)
+IsPole(SouthPole)
+IsSubstance(WaterIce)
+IsSubstance(CarbonDioxide)
+# Note: IsRock(Rock) or IsSoil(Soil) are generally true by definition of the constants,
+# but specific instances like IsRock(RockOmega) would be added if RockOmega constant is defined.
+
+# --- Property Assertions ---
+HasAtmosphere(Mars)
+PrimaryAtmosphericComponent(Mars, CarbonDioxide)
+IsFrozen(WaterIce) # Asserting the common state in which it's significantly found on Mars.
+
+# --- Location & Relationship Assertions (Representing the world state before time/actions) ---
+LocatedOn(OlympusMons, Mars)
+LocatedOn(VallesMarineris, Mars)
+LocatedOn(GaleCrater, Mars)
+LocatedOn(JezeroCrater, Mars)
+LocatedOn(NorthPole, Mars)
+LocatedOn(SouthPole, Mars)
+
+# Initial positions of rovers (these will become fluents in Situation Calculus, e.g., Holds(At(Perseverance, JezeroCrater), S0))
+LocatedIn(Perseverance, JezeroCrater)
+LocatedIn(Curiosity, GaleCrater)
+
+# Substance locations
+ExistsAt(WaterIce, NorthPole)
+ExistsAt(WaterIce, SouthPole)
+ExistsAt(CarbonDioxide, Mars) # Implied by being the primary atmospheric component
+
+# --- End of Genesis FOL Definition ---
