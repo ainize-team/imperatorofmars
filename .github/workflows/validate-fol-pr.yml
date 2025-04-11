@@ -1,30 +1,40 @@
-name: Retrieve All Changed Files
+name: Validate FOL with Check Run
 
 on:
     pull_request:
         branches: [main]
+        paths:
+            - "fol/**/*.fol"
 
 jobs:
-    diff:
+    validate-fol:
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            checks: write # Check Run 결과를 기록하기 위한 권한
+            pull-requests: read
 
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
               with:
-                  fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 비교가 가능하도록 합니다.
+                  fetch-depth: 0 # 전체 히스토리를 가져옵니다.
+              # 저장소의 전체 커밋 히스토리를 가져오므로, base와 head commit diff가 가능합니다.
 
-            - name: Get all changed files
-              id: diff
+            - name: Identify changed .fol files using commit SHAs
+              id: find_files
               run: |
-                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
-                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-                  # base와 head 사이의 모든 변경 파일을 가져옵니다.
-                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+                  echo "base sha: ${{ github.event.pull_request.base.sha }}"
+                  echo "head sha: ${{ github.event.pull_request.head.sha }}"
+                  # base commit과 head commit 사이의 diff를 계산합니다.
+                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  # set-output 명령어를 사용하여 다음 스텝에 변경 파일 목록을 전달합니다.
                   echo "::set-output name=files::$CHANGED_FILES"
 
-            - name: Show Changed Files
+            - name: Exit if no .fol file changed
+              if: steps.find_files.outputs.files == ''
               run: |
-                  echo "Changed Files: ${{ steps.diff.outputs.files }}"
+                  echo "No .fol files changed. Exiting."
+                  exit 0
+
+            # 이후 payload 생성, API 호출 등의 단계 진행…
