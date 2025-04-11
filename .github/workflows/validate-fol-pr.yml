@@ -9,109 +9,67 @@ on:
 jobs:
     validate-fol:
         runs-on: ubuntu-latest
-
         permissions:
             contents: read
-            checks: write # Check Run에 꼭 필요한 권한
+            checks: write # Check Run 결과를 기록하기 위한 권한
             pull-requests: read
 
         steps:
-            - name: Checkout repo
+            - name: Checkout Repository
               uses: actions/checkout@v3
               # 저장소의 최신 코드를 워크플로우 환경으로 가져옵니다.
 
-            - name: Get changed .fol files
-              id: diff
+            - name: Identify changed .fol files
+              id: find_files
               run: |
+                  # 기본 브랜치의 최신 커밋을 가져옵니다.
                   git fetch origin ${{ github.event.pull_request.base.ref }}
-                  CHANGED=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- 'fol/**/*.fol')
-                  echo "changed_files<<DELIM_CHANGED" >> $GITHUB_OUTPUT
-                  echo "$CHANGED" >> $GITHUB_OUTPUT
-                  echo "DELIM_CHANGED" >> $GITHUB_OUTPUT
+                  # 현재 PR에서 변경된 .fol 파일 목록을 추출합니다.
+                  CHANGED_FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }} -- "fol/**/*.fol")
+                  echo "::set-output name=files::$CHANGED_FILES"
 
-            - name: Fail early if no .fol files changed
-              if: ${{ steps.diff.outputs.changed_files == '' }}
+            - name: Exit if no .fol file changed
+              if: steps.find_files.outputs.files == ''
               run: |
-                  echo "No .fol file changes detected. Skipping validation."
-              # 변경된 .fol 파일이 없으면 검증 단계를 건너뛰고, 이후 단계로 진행하지 않습니다.
+                  echo "No .fol files changed. Exiting."
+                  exit 0
 
-            - name: Build JSON payload & summary
-              id: build
+            - name: Build JSON payload
+              id: build_payload
               run: |
-                  FILE_LIST=$(echo "${{ steps.diff.outputs.changed_files }}" | tr '\n' ' ')
+                  FILES="${{ steps.find_files.outputs.files }}"
                   PAYLOAD="{\"files\":["
-                  SUMMARY=""
-                  for file in $FILE_LIST; do
-                    ENCODED=$(jq -Rs < "$file")
-                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${ENCODED}},"
-
-                    SUMMARY="${SUMMARY}\n📄 *${file}*"
-                    CONSTANTS=$(grep -v '^#' "$file" | grep -E '^[A-Z][A-Za-z0-9]*$' || true)
-                    PREDICATES=$(grep -E '^[A-Za-z0-9_]+\(' "$file" | cut -d'(' -f1 | sort | uniq || true)
-                    FACTS=$(grep -E '^[A-Za-z0-9_]+\([A-Za-z0-9_, ]+\)' "$file" || true)
-
-                    if [ -n "$CONSTANTS" ]; then
-                      SUMMARY="${SUMMARY}\n- Constants: \`$(echo "$CONSTANTS" | tr '\n' ', ' | sed 's/, $//')\`"
-                    fi
-                    if [ -n "$PREDICATES" ]; then
-                      SUMMARY="${SUMMARY}\n- Predicates: \`$(echo "$PREDICATES" | tr '\n' ', ' | sed 's/, $//')\`"
-                    fi
-                    if [ -n "$FACTS" ]; then
-                      SUMMARY="${SUMMARY}\n- Facts: $(echo "$FACTS" | wc -l | xargs) assertions"
-                    fi
+                  # 각 파일의 경로와 파일 내용을 JSON 객체로 인코딩합니다.
+                  for file in $FILES; do
+                    # jq -Rs 를 사용하여 파일 전체 내용을 JSON 문자열로 인코딩합니다.
+                    CONTENT=$(cat "$file" | jq -Rs .)
+                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
                   done
+                  # 마지막 쉼표 제거 후 JSON 배열 닫기
                   PAYLOAD="${PAYLOAD%,}]}"
                   echo "$PAYLOAD" > payload.json
+                  echo "::set-output name=payload::$PAYLOAD"
+                  # 생성된 payload.json을 확인합니다.
+                  cat payload.json
 
-                  echo "summary<<DELIM_SUMMARY" >> $GITHUB_OUTPUT
-                  echo "$SUMMARY" >> $GITHUB_OUTPUT
-                  echo "DELIM_SUMMARY" >> $GITHUB_OUTPUT
-
-            - name: Call FOL validation webhook
-              id: call_webhook
+            - name: Call FOL Validation API
+              id: call_api
               run: |
+                  # payload.json에 담긴 데이터를 API에 POST 방식으로 전송합니다.
                   STATUS=$(curl -s -o response.json -w "%{http_code}" \
                     -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
                     -H "Content-Type: application/json" \
                     -d @payload.json)
+                  echo "::set-output name=status::$STATUS"
+                  echo "API Response:"
+                  cat response.json
 
-                  echo "status=$STATUS" >> $GITHUB_OUTPUT
-                  cat response.json >> response_body.txt
-                  echo "body<<EOF" >> $GITHUB_OUTPUT
-                  cat response_body.txt >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
+            - name: Fail if validation error
+              if: steps.call_api.outputs.status != '200'
+              run: |
+                  echo "FOL validation failed. Exiting with error."
+                  exit 1
 
-            - name: Report Check Run (Pass)
-              if: ${{ steps.call_webhook.outputs.status == '200' }}
-              uses: LouisBrunner/checks-action@v1.6.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: FOL Consistency Check
-                  conclusion: success
-                  output: |
-                      {
-                        "title": "✅ .fol 정합성 검사 통과",
-                        "summary": "모든 .fol 파일이 검사를 통과했습니다.",
-                        "text": "${{ steps.build.outputs.summary }}"
-                      }
-              # 검증 웹훅이 200 상태 코드를 반환하면 성공한 것으로 간주하고, 성공 상태의 Check Run을 보고합니다.
-
-            - name: Report Check Run (Fail)
-              if: ${{ steps.call_webhook.outputs.status != '200' }}
-              uses: LouisBrunner/checks-action@v1.6.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: FOL Consistency Check
-                  conclusion: failure
-                  output: |
-                      {
-                        "title": "❌ .fol 정합성 검사 실패",
-                        "summary": "Webhook 응답 상태: ${{ steps.call_webhook.outputs.status }}",
-                        "text": "${{ steps.call_webhook.outputs.body }}"
-                      }
-              # 웹훅의 응답 상태 코드가 200이 아니면 실패한 것으로 간주하여, 실패 상태의 Check Run을 보고합니다.
-
-            - name: Fail workflow on validation error
-              if: ${{ steps.call_webhook.outputs.status != '200' }}
-              run: exit 1
-              # 최종적으로 검증 실패 시, 워크플로우 전체를 실패 처리하여 머지가 안되도록 합니다.
+            - name: Success message
+              if: steps.call_api.outputs.status == '200'
+              run: echo "FOL validation succeeded."
