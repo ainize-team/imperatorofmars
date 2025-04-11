@@ -26,10 +26,11 @@ jobs:
               run: |
                   echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
                   echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-                  # fol/ 바로 아래 파일와 하위 디렉토리 파일 모두 비교
+                  # fol/ 바로 아래 파일과 하위 디렉토리의 파일 모두 비교
                   CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  echo "::set-output name=files::$CHANGED_FILES"
+                  # 새로운 환경 파일 방식: 출력값을 $GITHUB_OUTPUT 파일에 기록
+                  echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
             - name: Exit if no .fol file changed
               if: steps.find_files.outputs.files == ''
@@ -59,7 +60,7 @@ jobs:
                   echo "----- Generated payload.json -----"
                   cat payload.json
                   echo "----------------------------------"
-                  echo "::set-output name=payload::$PAYLOAD"
+                  echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
 
             - name: Call FOL Validation API
               id: call_api
@@ -68,9 +69,9 @@ jobs:
                     -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
                     -H "Content-Type: application/json" \
                     -d @payload.json)
-                  echo "::set-output name=status::$STATUS"
+                  echo "status=$STATUS" >> $GITHUB_OUTPUT
                   BODY=$(cat response.json)
-                  echo "::set-output name=body::$BODY"
+                  echo "body=$BODY" >> $GITHUB_OUTPUT
                   echo "API HTTP Status Code: $STATUS"
                   echo "----- API Response (response.json) -----"
                   cat response.json
@@ -101,7 +102,7 @@ jobs:
                       {
                         "title": "❌ .fol 정합성 검사 실패",
                         "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
-                        "text": "${{ steps.call_api.outputs.body }}"
+                        "text": "실패 사유: ${{ steps.call_api.outputs.body }}"
                       }
 
             - name: Fail workflow on validation error
