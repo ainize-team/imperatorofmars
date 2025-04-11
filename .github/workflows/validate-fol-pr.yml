@@ -29,7 +29,7 @@ jobs:
                   # fol/ 바로 아래 파일과 하위 디렉토리 파일 모두 비교
                   CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  # 새로운 환경 파일 방식으로 출력값 설정
+                  # 최신 방식: 환경 파일에 출력값 기록 (GITHUB_OUTPUT 파일)
                   echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
             - name: Exit if no .fol file changed
@@ -88,7 +88,7 @@ jobs:
                       {
                         "title": "✅ .fol 정합성 검사 통과",
                         "summary": "모든 .fol 파일이 검사를 통과했습니다.",
-                        "text": "변경된 파일들: ${{ toJson(steps.find_files.outputs.files) }}"
+                        "text": ${{ toJson(steps.find_files.outputs.files) }}
                       }
 
             - name: Report Check Run (Fail)
@@ -102,7 +102,7 @@ jobs:
                       {
                         "title": "❌ .fol 정합성 검사 실패",
                         "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
-                        "text": "실패 사유: ${{ toJson(steps.call_api.outputs.body) }}"
+                        "text": ${{ toJson(steps.call_api.outputs.body) }}
                       }
 
             - name: Fail workflow on validation error
