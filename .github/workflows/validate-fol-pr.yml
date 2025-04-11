@@ -1,40 +1,30 @@
-name: Validate FOL with Check Run
+name: Retrieve All Changed Files
 
 on:
     pull_request:
         branches: [main]
-        paths:
-            - "fol/**/*.fol"
 
 jobs:
-    validate-fol:
+    diff:
         runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            checks: write # Check Run 결과를 기록하기 위한 권한
-            pull-requests: read
 
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
               with:
-                  fetch-depth: 0 # 전체 히스토리를 가져옵니다.
-              # 저장소의 전체 커밋 히스토리를 가져오므로, base와 head commit diff가 가능합니다.
+                  fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 비교가 가능하도록 합니다.
 
-            - name: Identify changed .fol files using commit SHAs
-              id: find_files
+            - name: Get all changed files
+              id: diff
               run: |
-                  echo "base sha: ${{ github.event.pull_request.base.sha }}"
-                  echo "head sha: ${{ github.event.pull_request.head.sha }}"
-                  # base commit과 head commit 사이의 diff를 계산합니다.
-                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/**/*.fol")
+                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+                  # base와 head 사이의 모든 변경 파일을 가져옵니다.
+                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
+                  # set-output 명령어를 사용하여 다음 스텝에 변경 파일 목록을 전달합니다.
                   echo "::set-output name=files::$CHANGED_FILES"
 
-            - name: Exit if no .fol file changed
-              if: steps.find_files.outputs.files == ''
+            - name: Show Changed Files
               run: |
-                  echo "No .fol files changed. Exiting."
-                  exit 0
-
-            # 이후 payload 생성, API 호출 등의 단계 진행…
+                  echo "Changed Files: ${{ steps.diff.outputs.files }}"
