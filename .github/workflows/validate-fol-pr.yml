@@ -76,9 +76,10 @@ jobs:
                     -d @payload.json)
 
                   echo "status=$STATUS" >> $GITHUB_OUTPUT
-                  echo "body<<DELIM_BODY" >> $GITHUB_OUTPUT
-                  cat response.json >> $GITHUB_OUTPUT
-                  echo "DELIM_BODY" >> $GITHUB_OUTPUT
+                  cat response.json >> response_body.txt
+                  echo "body<<EOF" >> $GITHUB_OUTPUT
+                  cat response_body.txt >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
 
             - name: Report Check Run (Pass)
               if: ${{ steps.call_webhook.outputs.status == '200' }}
