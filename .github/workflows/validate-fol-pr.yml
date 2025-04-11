@@ -5,28 +5,28 @@ on:
         branches: [main]
         paths:
             - "fol/**/*.fol"
+            - "fol/*.fol" # fol/ 바로 아래 파일도 포함
 
 jobs:
     validate-fol:
         runs-on: ubuntu-latest
         permissions:
             contents: read
-            checks: write # Check Run 결과를 기록하기 위한 권한
+            checks: write # Check Run 결과 기록용 권한
             pull-requests: read
 
         steps:
             - name: Checkout Repository
               uses: actions/checkout@v3
               with:
-                  fetch-depth: 0 # 전체 히스토리를 가져옵니다.
-              # 저장소의 전체 커밋 히스토리를 가져오므로, base와 head commit diff가 가능합니다.
+                  fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
 
-            - name: Identify changed .fol files using commit SHAs
+            - name: Identify changed .fol files
               id: find_files
               run: |
-                  echo "base sha: ${{ github.event.pull_request.base.sha }}"
-                  echo "head sha: ${{ github.event.pull_request.head.sha }}"
-                  # base commit과 head commit 사이의 diff를 계산합니다.
+                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+                  # fol/ 바로 아래 파일와 하위 디렉토리 파일 모두 비교
                   CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
                   echo "::set-output name=files::$CHANGED_FILES"
@@ -37,4 +37,73 @@ jobs:
                   echo "No .fol files changed. Exiting."
                   exit 0
 
-            # 이후 payload 생성, API 호출 등의 단계 진행…
+            - name: Build JSON payload
+              id: build_payload
+              run: |
+                  FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
+                  echo "DEBUG: Files = [$FILES]"
+                  PAYLOAD="{\"files\":["
+                  for file in $FILES; do
+                    if [ -f "$file" ]; then
+                      CONTENT=$(jq -Rs . < "$file")
+                      echo "DEBUG: File [$file] exists."
+                    else
+                      echo "DEBUG: File [$file] does not exist."
+                      CONTENT="\"\""
+                    fi
+                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
+                  done
+                  # 마지막 쉼표 제거 후 JSON 배열 닫기
+                  PAYLOAD="${PAYLOAD%,}]}"
+                  echo "$PAYLOAD" > payload.json
+                  echo "----- Generated payload.json -----"
+                  cat payload.json
+                  echo "----------------------------------"
+                  echo "::set-output name=payload::$PAYLOAD"
+
+            - name: Call FOL Validation API
+              id: call_api
+              run: |
+                  STATUS=$(curl -s -o response.json -w "%{http_code}" \
+                    -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
+                    -H "Content-Type: application/json" \
+                    -d @payload.json)
+                  echo "::set-output name=status::$STATUS"
+                  BODY=$(cat response.json)
+                  echo "::set-output name=body::$BODY"
+                  echo "API HTTP Status Code: $STATUS"
+                  echo "----- API Response (response.json) -----"
+                  cat response.json
+                  echo "-----------------------------------------"
+
+            - name: Report Check Run (Pass)
+              if: steps.call_api.outputs.status == '200'
+              uses: LouisBrunner/checks-action@v1.6.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: FOL Consistency Check
+                  conclusion: success
+                  output: |
+                      {
+                        "title": "✅ .fol 정합성 검사 통과",
+                        "summary": "모든 .fol 파일이 검사를 통과했습니다.",
+                        "text": "변경된 파일들: ${{ steps.find_files.outputs.files }}"
+                      }
+
+            - name: Report Check Run (Fail)
+              if: steps.call_api.outputs.status != '200'
+              uses: LouisBrunner/checks-action@v1.6.0
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  name: FOL Consistency Check
+                  conclusion: failure
+                  output: |
+                      {
+                        "title": "❌ .fol 정합성 검사 실패",
+                        "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
+                        "text": "${{ steps.call_api.outputs.body }}"
+                      }
+
+            - name: Fail workflow on validation error
+              if: steps.call_api.outputs.status != '200'
+              run: exit 1
