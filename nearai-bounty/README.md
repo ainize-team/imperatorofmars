@@ -16,7 +16,7 @@ The Text2FOL agent bridges the gap between creative storytelling and precise log
 </p>
 The FOL2HTML Agent automatically transforms structured FOL statements into creative, visually appealing HTML stories, ensuring logical coherence and readability.
 
-# Req2: "Code must be in a public repository
+# Req2: Code must be in a public repository
 
 ## 🙋‍♂️ Actual Codes
 ### [./world-builder/src/app/page.tsx](https://github.com/ainize-team/imperatorofmars/blob/main/world-builder/src/app/page.tsx#L123-L140)
