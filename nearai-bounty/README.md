@@ -4,19 +4,19 @@
 
 ## Uploaded URL hosted by NEAR Hub: https://app.near.ai/profiles/kyungmoonleecomcom.near
 
-## Agent ["Text2FOL"](https://app.near.ai/agents/kyungmoonleecomcom.near/Text2FOL/latest)
+## 🙋‍♂️ Agent ["Text2FOL"](https://app.near.ai/agents/kyungmoonleecomcom.near/Text2FOL/latest)
 <p align="center">
   <img src="./src/nearai_agent_text2fol.png" alt="Agent Text2FOL">
 </p>
 
-## Agent ["FOL2HTML"](https://app.near.ai/agents/kyungmoonleecomcom.near/FOL2HTML/latest)
+## 🙋‍♀️ Agent ["FOL2HTML"](https://app.near.ai/agents/kyungmoonleecomcom.near/FOL2HTML/latest)
 <p align="center">
   <img src="./src/nearai_agent_fol2html.png" alt="Agent FOL2HTML">
 </p>
 
 # Req2: "Code must be in a public repository
 
-## 🔍 Actual Codes
+## 🙋‍♂️ Actual Codes
 ### [./world-builder/src/app/page.tsx](https://github.com/ainize-team/imperatorofmars/blob/main/world-builder/src/app/page.tsx#L123-L140)
 ```typescript
 const getFOL = async (input: string) => {
@@ -67,6 +67,40 @@ const messageResponse = await fetch(`https://api.near.ai/v1/threads/${threadId}/
     "Authorization": `Bearer ${JSON.stringify(authPayload)}`
   }
 });
+```
+
+## 🙋‍♀️ Actual Codes
+### [./world-builder/src/app/api/gen-fol/route.ts](https://github.com/ainize-team/imperatorofmars/blob/feature/kyungmoon/nearai-bounty/world-builder/src/app/api/gen-html/route.ts#L28-L56)
+```typescript
+// Send a request to the NEAR API to create a new thread
+const threadResponse = await fetch("https://api.near.ai/v1/threads/runs", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${JSON.stringify(authPayload)}`
+  },
+  body: JSON.stringify({
+    agent_id: "kyungmoonleecomcom.near/FOL2HTML/0.0.2", 
+    new_message: pairedFolHtmlContents,
+    max_iterations: "1"
+  })
+});
+
+const threadResult = await threadResponse.text();
+
+// Extract the thread_id from the response
+const threadId = threadResult.replace(/["%]/g, '').trim();
+
+// Send a request to the NEAR API to get the messages in the thread
+const messageResponse = await fetch(`https://api.near.ai/v1/threads/${threadId}/messages`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${JSON.stringify(authPayload)}`
+  }
+});
+
+const messageResult = await messageResponse.json();
 ```
 
 # Req3: "Quantitative Benchmarks for Agent Performance" (TBD)
