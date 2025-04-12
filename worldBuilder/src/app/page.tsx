@@ -65,6 +65,7 @@ export default function Home() {
     if (!signature) return;
 
     // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    console.log("FRONT-END input :>> ", input);
     try {
       const response = await fetch('/api/gen-fol', {
         method: 'POST',

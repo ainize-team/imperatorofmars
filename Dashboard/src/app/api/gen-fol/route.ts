@@ -13,6 +13,8 @@ export async function POST(req: NextRequest) {
     message: process.env.NEAR_MESSAGE,
   };
 
+  console.log("authPayload :>> ", authPayload);
+
   const runResponse = await fetch("https://api.near.ai/v1/threads/runs", {
     method: "POST",
     headers: {
