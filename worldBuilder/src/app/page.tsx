@@ -15,12 +15,15 @@ import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
 import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
 import { Address } from "viem";
 import { getFileHash } from "@/lib/functions/file";
+import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
   const [nodes, setNodes] = useState<any>([]);
   const [links, setLinks] = useState<any>([]);
   const [selectedNodes, setSelectedNodes] = useState<any>([]); // Change to array
+  const [showDialog, setShowDialog] = useState(false);
+
   const { data: wallet } = useWalletClient();
   const { signMessageAsync } = useSignMessage();
   const { client } = useStory();
@@ -93,9 +96,9 @@ export default function Home() {
     console.log('cid :>> ', cid);
     setSelectedNodes([]);
 
-    // TODO(jiyoung): move to FOL agent
     if (input.includes("KryptoPlanet")) {
-      await mintAndRegisterNFT();
+      setShowDialog(true);
+      return;
     }
 
     setInput("");
@@ -224,18 +227,28 @@ export default function Home() {
     setInput(message);
   }
 
+  const handleConfirmMint = async () => {
+    setShowDialog(false);
+    console.log("🎉 Minting logic for KryptoPlanet triggered!");
+    await mintAndRegisterNFT();
+  };
+
+  const handleCancelMint = () => {
+    setShowDialog(false);
+  };
+
   return (
     <div className="flex flex-col h-full w-full gap-5">
       <Navbar />
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
-        <DagVisualizer 
-          nodes={nodes} 
-          links={links} 
-          handleLinks={handleLinks} 
-          handleNodes={handleNodes} 
-          selectedNodes={selectedNodes} 
+        <DagVisualizer
+          nodes={nodes}
+          links={links}
+          handleLinks={handleLinks}
+          handleNodes={handleNodes}
+          selectedNodes={selectedNodes}
           handleSelectedNodes={handleSelectedNodes}
           handleInput={handleInputOnChild}
         />
@@ -253,11 +266,23 @@ export default function Home() {
               e.preventDefault();
               handleInput();
             }
-          }}></input>
-        <button className="" onClick={(e) => {
-          e.preventDefault();
-          handleInput();
-        }}>Generate</button>
+          }}
+        ></input>
+        <button
+          className=""
+          onClick={(e) => {
+            e.preventDefault();
+            handleInput();
+          }}
+        >
+          Generate
+        </button>
+        <DiscoveryDialog
+          open={showDialog}
+          onConfirm={handleConfirmMint}
+          onCancel={handleCancelMint}
+          name="KryptoPlanet"
+        />
       </div>
     </div>
   );
