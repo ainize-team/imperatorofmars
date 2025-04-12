@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 import Web3Providers from "./Web3Providers";
 
@@ -26,7 +27,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-dvh p-5`}>
-        <Web3Providers>{children}</Web3Providers>
+        <Web3Providers>
+          <Toaster position="bottom-left" toastOptions={{ style: { fontSize: "13px" } }} />
+          {children}
+        </Web3Providers>
       </body>
     </html>
   );
