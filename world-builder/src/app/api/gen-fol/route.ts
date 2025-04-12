@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
   console.log("Extracted Message:", extractedMessage);
 
   const constantFOL = `
+    IsPlanet
     # First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model
     # Consistent and unified representation
     # Date: 2025-04-12
