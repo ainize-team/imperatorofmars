@@ -10,18 +10,19 @@ import FeedViewer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
 import DagVisualizer from "@/components/dagVisualizer";
 import { generateCid } from "@/utils/crypto";
+import NodeMetadataViewer from "@/components/nodeMetadataViewer";
 import { useStory } from "@/lib/context/AppContext";
 import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
-import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
 import { Address } from "viem";
 import { getFileHash } from "@/lib/functions/file";
+import { mockHintNodes } from "@/moks/mockNodes";
 import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
   const [nodes, setNodes] = useState<any>([]);
   const [links, setLinks] = useState<any>([]);
-  const [selectedNodes, setSelectedNodes] = useState<any>([]); // Change to array
+  const [selectedNode, setSelectedNode] = useState<any>();
   const [showDialog, setShowDialog] = useState(false);
 
   const { data: wallet } = useWalletClient();
@@ -36,12 +37,15 @@ export default function Home() {
     setLinks((prevLinks: any) => [...prevLinks, newLink]);
   };
 
-  const handleSelectedNodes = (d: any) => {
-    setSelectedNodes((prevSelectedNodes: any) => {
-      if (prevSelectedNodes.some((node: any) => node.id === d.id)) {
-        return prevSelectedNodes.filter((node: any) => node.id !== d.id);
+  const handleSelectedNode = (d: any) => {
+    setSelectedNode((prevSelectedNode: any) => {
+      console.log('d, prevSelectedNode :>> ', d, prevSelectedNode);
+      if (!d) return null;
+      if (prevSelectedNode && prevSelectedNode.id === d.id) {
+        return null;
       } else {
-        return [...prevSelectedNodes, d];
+        console.log('d :>> ', d);
+        return d;
       }
     });
   };
@@ -53,34 +57,35 @@ export default function Home() {
       const newNode = {
         message: msg,
         type: "hint",
-        children: [lastNodeCid]
-      }
-      const cid = generateCid(newNode)
+        children: [lastNodeCid],
+      };
+      const cid = generateCid(newNode);
       hintNodes.push({
         ...newNode,
         cid,
         id: cid,
       });
 
-      hintLinks.push({source: cid, target: lastNodeCid, type: "dotted"});
+      hintLinks.push({ source: cid, target: lastNodeCid, type: "dotted" });
     });
     return {
-      hintNodes, hintLinks,
-    }
-  }
-  
+      hintNodes,
+      hintLinks,
+    };
+  };
+
   const handleInput = async () => {
     if (!input.trim()) return;
 
     const signature = await signMessage();
     if (!signature) return;
 
-    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input
     console.log("FRONT-END input :>> ", input);
     try {
-      const response = await fetch('/api/gen-fol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/gen-fol", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
 
@@ -92,9 +97,8 @@ export default function Home() {
       return;
     }
 
-    const cid = createNewNode(input, selectedNodes);
-    console.log('cid :>> ', cid);
-    setSelectedNodes([]);
+    const newNode = createNewNode(input);
+    setSelectedNode(newNode);
 
     if (input.includes("KryptoPlanet")) {
       setShowDialog(true);
@@ -117,19 +121,15 @@ export default function Home() {
     }
   };
 
-  const createNewNode = (input: string, selectedNodes: any[]) => {
+  const createNewNode = (input: string) => {
     const newNode = {
       message: input,
       data: [],
       children: [] as any[],
       type: "message",
-    }
+    };
     const cid = generateCid(newNode);
-    selectedNodes.forEach((node: any) => {
-      newNode.children.push(node.cid);
-    });
-
-    const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
+    const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
     setNodes(
       (prevNodes: any) => 
@@ -139,17 +139,30 @@ export default function Home() {
           ...hintNodes
         ]
     );
-    selectedNodes.forEach((node: any) => {
+
+    if (selectedNode) {
+      console.log('selectedNode in createnewnode :>> ', selectedNode);
+      newNode.children.push(selectedNode.cid);
       setLinks(
         (prevLinks: any) => 
           [
             ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            { source: cid, target: node.id },
+            { source: cid, target: selectedNode.id },
             ...hintLinks
           ]
       );
-    });
-    return cid;
+    } else {
+      setLinks(
+        (prevLinks: any) => 
+          [
+            ...prevLinks.filter((link: any) => link.type !== "dotted"),
+            ...hintLinks
+          ]
+      );
+    }
+
+    
+    return {...newNode, cid, id: cid};
   };
 
   const mintAndRegisterNFT = async () => {
@@ -160,7 +173,11 @@ export default function Home() {
     const image = await fileFromUrl("/asset/kryptoplanet.png");
     const formData = new FormData();
     formData.append("file", image);
-    const imageIpfsHash = await uploadImageToIPFS(formData);
+    const imageUploadRes = await fetch("/api/ipfs/image", {
+      method: "POST",
+      body: formData,
+    });
+    const { ipfsHash: imageIpfsHash } = await imageUploadRes.json();
     toast.success(`IPFS upload completed. URI: ${imageIpfsHash}`, { id: tid1 });
 
     // create and upload NFT metadata
@@ -169,7 +186,14 @@ export default function Home() {
       description: defaultMetadata.description,
       image: `https://ipfs.io/ipfs/${imageIpfsHash}`,
     };
-    const nftIpfsCid = await uploadJsonToIPFS(nftData);
+    const nftMetadataUploadRes = await fetch("/api/ipfs/json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(nftData),
+    });
+    const { ipfsHash: nftIpfsCid } = await nftMetadataUploadRes.json();
     const nftMetadataHash = CryptoJS.SHA256(JSON.stringify(nftData)).toString(CryptoJS.enc.Hex);
 
     // create and upload IP data
@@ -190,7 +214,16 @@ export default function Home() {
         },
       ],
     });
-    const ipIpfsCid = await uploadJsonToIPFS(ipData);
+
+    const ipMetadataUploadRes = await fetch("/api/ipfs/json", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(nftData),
+    });
+    const { ipfsHash: ipIpfsCid } = await ipMetadataUploadRes.json();
+
     const ipMetadataHash = CryptoJS.SHA256(JSON.stringify(ipData)).toString(CryptoJS.enc.Hex);
     toast.success(
       `IP metadata created: ${JSON.stringify({
@@ -225,7 +258,7 @@ export default function Home() {
 
   const handleInputOnChild = (message: string) => {
     setInput(message);
-  }
+  };
 
   const handleConfirmMint = async () => {
     setShowDialog(false);
@@ -248,11 +281,14 @@ export default function Home() {
           links={links}
           handleLinks={handleLinks}
           handleNodes={handleNodes}
-          selectedNodes={selectedNodes}
-          handleSelectedNodes={handleSelectedNodes}
+          selectedNode={selectedNode}
+          handleSelectedNode={handleSelectedNode}
           handleInput={handleInputOnChild}
         />
-        <FeedViewer />
+        <div className="flex-1 flex flex-col gap-2 max-w-[350px]">
+          <FeedViewer />
+          <NodeMetadataViewer node={selectedNode} />
+        </div>
       </div>
       {/* Input */}
       <div className="flex flex-row border-2 border-black w-full justify-between p-1">

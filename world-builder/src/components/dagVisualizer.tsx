@@ -13,8 +13,8 @@ type props = {
   handleNodes: Function,
   links: any[],
   handleLinks: Function,
-  selectedNodes: any[],
-  handleSelectedNodes: Function,
+  selectedNode: any,
+  handleSelectedNode: Function,
   handleInput: Function,
 }
 
@@ -23,8 +23,8 @@ export default function DagVisualizer({
   handleNodes, 
   links,
   handleLinks, 
-  selectedNodes, 
-  handleSelectedNodes,
+  selectedNode, 
+  handleSelectedNode,
   handleInput,
 }: props) {
   const [loading, setLoading] = useState(false);
@@ -32,14 +32,9 @@ export default function DagVisualizer({
   const [fetchingCid, setFetchingCid] = useState<string>('');
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
-  // Initialize API connection
   useEffect(() => {
-    const cid = "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b";
-    if (cid) {
-      setFetchingCid(cid);
-      fetchNodeByCid(cid);
-    }
-  }, []);
+    console.log(selectedNode);
+  }, [selectedNode]);
 
   // Fetch node by CID
   const fetchNodeByCid = async (cid: string) => {
@@ -60,11 +55,11 @@ export default function DagVisualizer({
       // Check if the node already exists
       if (!nodes.some((n: any) => n.cid === cid)) {
         const queue = [ {parent: null, cid} ];
-        const visitedCids = new Set();
+        const visitedCids: string[] = [];
 
         while (queue.length > 0) {
           const edge = queue.shift();
-          visitedCids.add(edge!.cid);
+          visitedCids.push(edge!.cid);
           try {
             const nodeResponse = await fetch(`/api/dag/get?cid=${edge!.cid}`);
             const nodeResult = await nodeResponse.json();
@@ -84,7 +79,7 @@ export default function DagVisualizer({
               }
               // Add child nodes to the queue
               node.children.map((childCid: string) => {
-                if (!visitedCids.has(childCid) && !nodes.some((n: any) => n.cid === childCid)) {
+                if (!visitedCids.includes(childCid) && !nodes.some((n: any) => n.cid === childCid)) {
                   queue.push({parent: node.id, cid: childCid})
                 }
               });
@@ -182,7 +177,7 @@ export default function DagVisualizer({
         if (d.type === "hint") {
           handleInput(d.message || "");
         } else {
-          handleSelectedNodes(d);
+          handleSelectedNode(d);
         }
         event.stopPropagation();
       });
@@ -191,8 +186,8 @@ export default function DagVisualizer({
     node.append("circle")
       .attr("r", 20)
       .attr("fill", (d: any) => d.type === 'message' ? "#66ccff" : "#ff9966")
-      .attr("stroke", (d: any) => selectedNodes.some((node: any) => node.id === d.id) ? "#ff0000" : "#fff")
-      .attr("stroke-width", (d: any) => selectedNodes.some((node: any) => node.id === d.id) ? 2 : 1);
+      .attr("stroke", (d: any) => selectedNode && selectedNode.id === d.id ? "#ff0000" : "#fff")
+      .attr("stroke-width", (d: any) => selectedNode && selectedNode.id === d.id ? 2 : 1);
     
     // Node labels
     node.append("text")
@@ -234,16 +229,16 @@ export default function DagVisualizer({
     
     // Clear selected nodes on canvas click
     svg.on("click", () => {
-      handleSelectedNodes([]);
+      handleSelectedNode(null);
     });
     
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, selectedNodes]);
+  }, [nodes, links, selectedNode]);
 
   return (
-    <div className="flex-1 border-2 border-black h-[80vh] overflow-hidden">
+    <div className="flex-1 border-2 border-black h-[80vh] overflow-hidden p-2">
       <div>Dag Visualizer</div>
       <div id="dag-container">
         {loading && (
