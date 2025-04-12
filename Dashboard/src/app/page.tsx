@@ -76,7 +76,7 @@ export default function Home() {
       newNode.children.push(node.cid);
     });
 
-    const { hintNodes, hintLinks } = makeHintNode(cid, ["ABC Hint", "DEF Hint"]);
+    const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
 
     setNodes(
       (prevNodes: any) => 
@@ -93,6 +93,7 @@ export default function Home() {
         ...hintLinks
       ]);
     })
+    setSelectedNodes([cid]);
 
     const tid1 = toast.loading("Uploading image to IPFS...");
     // TODO(jiyoung): upload image to IPFS
@@ -158,7 +159,10 @@ export default function Home() {
               handleInput();
             }
           }}></input>
-        <button className="" onClick={handleInput}>Generate</button>
+        <button className="" onClick={(e) => {
+          e.preventDefault();
+          handleInput();
+        }}>Generate</button>
       </div>
     </div>
   );
