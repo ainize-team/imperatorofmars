@@ -41,6 +41,10 @@ export default function DagVisualizer({
     }
   }, []);
 
+  useEffect(() => {
+    console.log(selectedNode);
+  }, [selectedNode]);
+
   // Fetch node by CID
   const fetchNodeByCid = async (cid: string) => {
     if (!isConnected) {

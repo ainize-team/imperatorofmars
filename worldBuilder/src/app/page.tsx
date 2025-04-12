@@ -68,7 +68,6 @@ export default function Home() {
     if (!signature) return;
 
     const cid = createNewNode(input);
-    console.log('cid :>> ', cid);
     setSelectedNode(cid);
 
     await mintAndRegisterNFT();
@@ -97,9 +96,6 @@ export default function Home() {
       type: "message",
     }
     const cid = generateCid(newNode);
-    if (selectedNode) {
-      newNode.children.push(selectedNode.cid);
-    }
     const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
 
     setNodes(
@@ -110,14 +106,29 @@ export default function Home() {
           ...hintNodes
         ]
     );
-    setLinks(
-      (prevLinks: any) => 
-        [
-          ...prevLinks.filter((link: any) => link.type !== "dotted"),
-          { source: cid, target: selectedNode.id },
-          ...hintLinks
-        ]
-    );
+
+    if (selectedNode) {
+      console.log('selectedNode in createnewnode :>> ', selectedNode);
+      newNode.children.push(selectedNode.cid);
+      setLinks(
+        (prevLinks: any) => 
+          [
+            ...prevLinks.filter((link: any) => link.type !== "dotted"),
+            { source: cid, target: selectedNode.id },
+            ...hintLinks
+          ]
+      );
+    } else {
+      setLinks(
+        (prevLinks: any) => 
+          [
+            ...prevLinks.filter((link: any) => link.type !== "dotted"),
+            ...hintLinks
+          ]
+      );
+    }
+
+    
     return cid;
   };
 
