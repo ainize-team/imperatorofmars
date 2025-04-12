@@ -2,20 +2,28 @@
 "use client";
 
 import { useState } from "react";
-import { useSignMessage } from "wagmi";
+import { useSignMessage, useWalletClient } from "wagmi";
+import CryptoJS from "crypto-js";
 import toast from "react-hot-toast";
 import Navbar from "@/components/sections/Navbar";
-import FeedVeiwer from "@/components/feedViewer";
+import FeedViewer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
 import DagVisualizer from "@/components/dagVisualizer";
 import { generateCid } from "@/utils/crypto";
+import { useStory } from "@/lib/context/AppContext";
+import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
+import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
+import { Address } from "viem";
+import { getFileHash } from "@/lib/functions/file";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
   const [nodes, setNodes] = useState<any>([]);
   const [links, setLinks] = useState<any>([]);
   const [selectedNodes, setSelectedNodes] = useState<any>([]); // Change to array
+  const { data: wallet } = useWalletClient();
   const { signMessageAsync } = useSignMessage();
+  const { client } = useStory();
 
   const handleNodes = (newNode: any) => {
     setNodes((prevNodes: any) => [...prevNodes, newNode]);
@@ -43,7 +51,10 @@ export default function Home() {
 
     const cid = createNewNode(input, selectedNodes);
 
-    await mintAndRegisterNFT();
+    // TODO(jiyoung): move to FOL agent
+    if (input.includes("KryptoPlanet")) {
+      await mintAndRegisterNFT();
+    }
 
     setInput("");
   };
@@ -79,38 +90,75 @@ export default function Home() {
   };
 
   const mintAndRegisterNFT = async () => {
-    const tid = toast.loading("Uploading image to IPFS...");
-    await new Promise((res) => setTimeout(res, 3000));
-    toast.success("IPFS upload completed. URI: https://ipfs.io/ipfs/Qm...", { id: tid });
+    if (!client) return;
 
-    // toast.loading('Creating NFT metadata...');
-    // TODO(jiyoung): create nft metadata
-    // TODO(jiyoung): upload json metadata to IPFS
-    // await new Promise(res => setTimeout(res, 1000));
-    // toast.success('NFT metadata created.');
+    // upload image to IPFS
+    const tid1 = toast.loading("Uploading image to IPFS...");
+    const image = await fileFromUrl("/asset/kryptoplanet.png");
+    const formData = new FormData();
+    formData.append("file", image);
+    const imageIpfsHash = await uploadImageToIPFS(formData);
+    toast.success(`IPFS upload completed. URI: ${imageIpfsHash}`, { id: tid1 });
 
+    // create and upload NFT metadata
+    const nftData = {
+      name: defaultMetadata.name,
+      description: defaultMetadata.description,
+      image: `https://ipfs.io/ipfs/${imageIpfsHash}`,
+    };
+    const nftIpfsCid = await uploadJsonToIPFS(nftData);
+    const nftMetadataHash = CryptoJS.SHA256(JSON.stringify(nftData)).toString(CryptoJS.enc.Hex);
+
+    // create and upload IP data
     const tid2 = toast.loading("Creating IP metadata...");
-    // TODO(jiyoung): created ip metadata
-    // TODO(jiyoung): upload json metadata to IPFS
-    await new Promise((res) => setTimeout(res, 3000));
+    const ipData = client.ipAsset.generateIpMetadata({
+      title: defaultMetadata.name,
+      description: defaultMetadata.description,
+      image: `https://ipfs.io/ipfs/${imageIpfsHash}`,
+      imageHash: await getFileHash(image as File),
+      mediaUrl: `https://ipfs.io/ipfs/${imageIpfsHash}`,
+      mediaHash: await getFileHash(image as File),
+      mediaType: "image/png",
+      creators: [
+        {
+          name: "Test Creator",
+          contributionPercent: 100,
+          address: wallet?.account.address as Address,
+        },
+      ],
+    });
+    const ipIpfsCid = await uploadJsonToIPFS(ipData);
+    const ipMetadataHash = CryptoJS.SHA256(JSON.stringify(ipData)).toString(CryptoJS.enc.Hex);
     toast.success(
-      'IP metadata created: { name: "KryptoPlanet #001", description: "화성 에레보스 평원 발견...", image: "ipfs://QmArkData..." }',
+      `IP metadata created: ${JSON.stringify({
+        name: ipData.title,
+        description: ipData.description,
+        image: ipData.image,
+      })} `,
       { id: tid2 }
     );
 
-    // TODO(jiyoung): sign with wallet
-    // ...
+    // mint and register IPA
+    const tid3 = toast.loading("Minting and registering an IP Asset...");
+    const response = await client.ipAsset.mintAndRegisterIp({
+      spgNftContract: SPG_NFT_CONTRACT_ADDRESS,
+      ipMetadata: {
+        ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsCid}`,
+        ipMetadataHash: `0x${ipMetadataHash}`,
+        nftMetadataURI: `https://ipfs.io/ipfs/${nftIpfsCid}`,
+        nftMetadataHash: `0x${nftMetadataHash}`,
+      },
+      txOptions: { waitForTransaction: true },
+    });
+    console.log(`IPA created at tx hash ${response.txHash}, IPA ID: ${response.ipId}`);
+    toast.success(`IPA "${defaultMetadata.name}" registered!`, { id: tid3 });
+  };
 
-    const tid3 = toast.loading("Minting and registering an IPA...");
-    // TODO(jiyoung): mint and register an IPA with pil terms (using SPG contract)
-    // ref1: https://docs.story.foundation/sdk-reference/ipasset#mintandregisteripassetwithpilterms
-    // ref2: https://docs.story.foundation/concepts/programmable-ip-license/pil-flavors#flavor-%231%3A-non-commercial-social-remixing
-    await new Promise((res) => setTimeout(res, 3000));
-    toast.success(
-      'IPA "KryptoPlanet #001" successfully registered on Story Protocol! IPA ID: 0xArkIPAssetAddress…',
-      { id: tid3 }
-    );
-  }
+  const fileFromUrl = async (url: string): Promise<File> => {
+    const res = await fetch(url, { mode: "no-cors" });
+    const blob = await res.blob();
+    return new File([blob], "image.png", { type: blob.type });
+  };
 
   return (
     <div className="flex flex-col h-full w-full gap-5">
@@ -126,7 +174,7 @@ export default function Home() {
           selectedNodes={selectedNodes}
           handleSelectedNodes={handleSelectedNodes}
         />
-        <FeedVeiwer />
+        <FeedViewer />
       </div>
       {/* Input */}
       <div className="flex flex-row border-2 border-black w-full justify-between p-1">
