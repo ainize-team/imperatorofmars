@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
 
   console.log("Extracted Message:", extractedMessage);
 
+  const constantFOL = 'LocatedIn(Perseverance, JezeroCrater)'
   // 클라이언트로 반환
-  return NextResponse.json({ threadId, message: extractedMessage });
+  // return NextResponse.json({ threadId, message: extractedMessage });
+  return NextResponse.json({ threadId, message: constantFOL });
 }
 
