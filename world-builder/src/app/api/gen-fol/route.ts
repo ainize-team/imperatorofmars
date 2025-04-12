@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     message: process.env.NEAR_MESSAGE
   };
 
-  // NEAR AI에 메시지를 보내고 thread_id를 얻기 위한 요청
+  // Send a request to the NEAR API to create a new thread
   const threadResponse = await fetch("https://api.near.ai/v1/threads/runs", {
     method: "POST",
     headers: {
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       "Authorization": `Bearer ${JSON.stringify(authPayload)}`
     },
     body: JSON.stringify({
-      agent_id: "kyungmoonleecomcom.near/fol_generator_v1/0.0.2", 
+      agent_id: "kyungmoonleecomcom.near/TEXT2FOL/0.0.1", 
       new_message: message,
       max_iterations: "1"
     })
@@ -30,11 +30,11 @@ export async function POST(req: NextRequest) {
   const threadResult = await threadResponse.text();
   console.log("Thread Result:", threadResult);
 
-  // thread_id 추출 (결과에서 " 문자를 제거)
+  // Extract the thread_id from the response
   const threadId = threadResult.replace(/["%]/g, '').trim();
   console.log("Thread ID:", threadId);
 
-  // 얻은 thread_id를 사용하여 Agent 답변 메시지 조회
+  // Send a request to the NEAR API to get the messages in the thread
   const messageResponse = await fetch(`https://api.near.ai/v1/threads/${threadId}/messages`, {
     method: "GET",
     headers: {
@@ -51,86 +51,11 @@ export async function POST(req: NextRequest) {
     extractedMessage = assistantMessage.content
       .filter((c: any) => c.type === 'text')
       .map((c: any) => c.text.value)
-      .join(' ');  // 여러 텍스트를 연결할 경우를 고려하여 join
+      .join(' ');
   }
 
   console.log("Extracted Message:", extractedMessage);
-
-  const constantFOL = `
-    IsPlanet
-    # First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model
-    # Consistent and unified representation
-    # Date: 2025-04-12
-
-    # Constants
-    Mars
-    ImperatorOfMars
-    OlympusMons
-    VallesMarineris
-    GaleCrater
-    JezeroCrater
-    Perseverance
-    Curiosity
-    NorthPole
-    SouthPole
-    WaterIce
-    CarbonDioxide
-    Rock
-    Soil
-
-    # Predicates
-    IsPlanet(object)
-    IsEntity(object)
-    IsMountain(object)
-    IsValley(object)
-    IsCrater(object)
-    IsRover(object)
-    IsPole(object)
-    IsSubstance(object)
-    IsRock(object)
-    IsSoil(object)
-    HasAtmosphere(planet)
-    IsFrozen(substance)
-    LocatedOn(feature, planet)
-    LocatedIn(entity, location)
-    ExistsAt(substance, location)
-    PrimaryAtmosphericComponent(planet, substance)
-
-    # Facts
-    # Type Assertions
-    IsPlanet(Mars)
-    IsEntity(ImperatorOfMars)
-    IsMountain(OlympusMons)
-    IsValley(VallesMarineris)
-    IsCrater(GaleCrater)
-    IsCrater(JezeroCrater)
-    IsRover(Perseverance)
-    IsRover(Curiosity)
-    IsPole(NorthPole)
-    IsPole(SouthPole)
-    IsSubstance(WaterIce)
-    IsSubstance(CarbonDioxide)
-
-    # Property Assertions
-    HasAtmosphere(Mars)
-    PrimaryAtmosphericComponent(Mars, CarbonDioxide)
-    IsFrozen(WaterIce)
-
-    # Location & Relationship Assertions
-    LocatedOn(OlympusMons, Mars)
-    LocatedOn(VallesMarineris, Mars)
-    LocatedOn(GaleCrater, Mars)
-    LocatedOn(JezeroCrater, Mars)
-    LocatedOn(NorthPole, Mars)
-    LocatedOn(SouthPole, Mars)
-    LocatedIn(Perseverance, JezeroCrater)
-    LocatedIn(Curiosity, GaleCrater)
-    ExistsAt(WaterIce, NorthPole)
-    ExistsAt(WaterIce, SouthPole)
-    ExistsAt(CarbonDioxide, Mars)
-  `
-  // 클라이언트로 반환
-  // return NextResponse.json({ threadId, message: extractedMessage });
-  return NextResponse.json({ threadId, message: constantFOL });
+  return NextResponse.json({ threadId, message: extractedMessage });
+  // return NextResponse.json({ threadId, message: constantFOL });
 }
 

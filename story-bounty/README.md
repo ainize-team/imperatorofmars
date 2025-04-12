@@ -18,45 +18,38 @@ By safeguarding the ownership of the **creative building blocks** they produce, 
 - Set commercial-remix licensing with derivative works support
 - Verify ownership through MetaMask
 
-## How It Works
+## Demo Scenario: Claiming IP for the KryptoPlanet Discovery
 
-### 0. Discover New Creative Asset  
-Identify a new idea, character, or narrative component that deserves preservation and protection.  
+In the world of _Imperator of Mars_, builders continuously shape the Martian future through bold decisions.  
+Every action updates the **narrative DAG**, and sometimes, a discovery is so significant that it deserves to be **minted as IP**.
+
+### 🧭 Step 0. Diverging Paths – Potato Farming vs. Water Exploration
+
+> Two users, **Gamma** and **Delta**, commit to different futures at Node 2.
+> - Gamma chooses **Potato Farming** (Path A)
+> - Delta chooses **Water Exploration** (Path B)
+
+Both actions are signed through wallet signatures and committed, creating new branches in the narrative DAG.
+
+
+### ❄️ Step 1. A Monumental Discovery – Echo’s Turn
+
+Following Delta’s branch, **Echo** continues exploration and stumbles upon something remarkable:
+
+> “While surveying near the subsurface ice layers, Echo discovers a glowing mineral—**KryptoPlanet**—unknown to human science.”
+
+This is recorded in **DAG Node**, and immediately recognized as a potential **IP-worthy creative asset**.
 
 ![step0](./image/0_discover_asset.png)
 
-### 1. Upload Asset to IPFS  
-Upload your digital assets to IPFS for permanent storage.  
-
-
-```ts
-export async function uploadImageToIPFS(data: FormData) {
-  const pinFileRes = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.PINATA_JWT}`,
-    },
-    body: data,
-  });
-  const { IpfsHash } = await pinFileRes.json();
-  return IpfsHash;
-}
-
-export async function uploadJsonToIPFS(data: Record<string, any>) {
-  const pinata = new pinataSDK({ pinataJWTKey: process.env.PINATA_JWT });
-  const { IpfsHash } = await pinata.pinJSONToIPFS(data);
-  return IpfsHash;
-}
-```
-
+### 📦 Step 2. Uploading the Discovery Asset to IPFS
+The discovery is visualized and described (text, concept art, scientific notes) and uploaded to IPFS:
 
 ![step1_1](./image/1_1_upload_ipfs.png)
 ![step1_2](./image/1_2_upload_ipfs.png)
 
-### 2. Mint And Register IP
-Mint an NFT for your asset using Story Protocol's SPG NFT contracts.  
-Register your NFT as formal intellectual property within the Story Blockchain.
-
+### 🪙 Step 3. Mint and Register IP via Story Protocol
+Echo mints the asset as an NFT and formally registers it as IP using the Story SDK:
 
 ```ts
 const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
@@ -72,13 +65,14 @@ const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
 });
 console.log(`IPA created at tx hash ${response.txHash}, IPA ID: ${response.ipId}`);
 ```
-
+This locks authorship and gives Echo on-chain credit for the discovery.
 
 ![step2_1](./image/2_1_mint_register_ip.png)
 ![step1_2](./image/2_2_metamask.png)
 
-### 3. License Management  
-Set licensing terms to protect your work while enabling derivative creation with proper attribution.
+### 📄 Step 4. Licensing the Asset for Derivative Use
+
+Echo sets fair licensing rules—allowing others to remix, reuse, or build on **KryptoPlanet**, with attribution and revenue sharing:
 
 ```ts
 const commercialRemixTerms: LicenseTerms = {
@@ -101,6 +95,11 @@ const commercialRemixTerms: LicenseTerms = {
   uri: "",
 };
 ```
+
+### Why This Matters
+
+The discovery of KryptoPlanet is no longer just a moment in a story—it’s **preserved, owned, and shared** through IP.  
+With Story Protocol, builders like Echo become recognized co-authors of the _Imperator of Mars_ universe.
 
 ## Tech Stack
 - Story Protocol SDK
