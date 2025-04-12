@@ -100,4 +100,51 @@ export class GitHubService {
             body,
         });
     }
+
+    // 지정된 폴더(예: "fol") 내의 모든 .fol 파일을 재귀적으로 읽어 [{ path, content }] 배열을 반환합니다.
+    async getFolderFiles(
+        folderPath: string,
+        branch: string,
+    ): Promise<Array<{ path: string; content: string }>> {
+        const files: Array<{ path: string; content: string }> = [];
+
+        const traverse = async (currentPath: string) => {
+            const { data } = await this.octokit.repos.getContent({
+                owner: this.owner,
+                repo: this.repo,
+                path: currentPath,
+                ref: branch,
+            });
+            if (Array.isArray(data)) {
+                for (const item of data) {
+                    if (item.type === "file" && item.name.endsWith(".fol")) {
+                        let content = "";
+                        if (item.content) {
+                            content = Buffer.from(item.content, "base64").toString("utf8");
+                        } else if (item.download_url) {
+                            const response = await fetch(item.download_url);
+                            content = await response.text();
+                        }
+                        files.push({ path: item.path, content });
+                    } else if (item.type === "dir") {
+                        await traverse(item.path);
+                    }
+                }
+            } else {
+                if (data.type === "file" && data.name.endsWith(".fol")) {
+                    let content = "";
+                    if (data.content) {
+                        content = Buffer.from(data.content, "base64").toString("utf8");
+                    } else if (data.download_url) {
+                        const response = await fetch(data.download_url);
+                        content = await response.text();
+                    }
+                    files.push({ path: data.path, content });
+                }
+            }
+        };
+
+        await traverse(folderPath);
+        return files;
+    }
 }
