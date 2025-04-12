@@ -64,11 +64,11 @@ export default function DagVisualizer({
       // Check if the node already exists
       if (!nodes.some((n: any) => n.cid === cid)) {
         const queue = [ {parent: null, cid} ];
-        const visitedCids = new Set();
+        const visitedCids = [];
 
         while (queue.length > 0) {
           const edge = queue.shift();
-          visitedCids.add(edge!.cid);
+          visitedCids.push(edge!.cid);
           try {
             const nodeResponse = await fetch(`/api/dag/get?cid=${edge!.cid}`);
             const nodeResult = await nodeResponse.json();
@@ -88,7 +88,7 @@ export default function DagVisualizer({
               }
               // Add child nodes to the queue
               node.children.map((childCid: string) => {
-                if (!visitedCids.has(childCid) && !nodes.some((n: any) => n.cid === childCid)) {
+                if (!visitedCids.includes(childCid) && !nodes.some((n: any) => n.cid === childCid)) {
                   queue.push({parent: node.id, cid: childCid})
                 }
               });
