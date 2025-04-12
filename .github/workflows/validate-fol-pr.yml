@@ -66,7 +66,7 @@ jobs:
               id: call_api
               run: |
                   STATUS=$(curl -s -o response.json -w "%{http_code}" \
-                    -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
+                    -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/validate \
                     -H "Content-Type: application/json" \
                     -d @payload.json)
                   echo "status=$STATUS" >> $GITHUB_OUTPUT
