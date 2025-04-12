@@ -89,7 +89,14 @@ export default function Home() {
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
-        <DagVisualizer nodes={nodes} links={links} handleLinks={handleLinks} handleNodes={handleNodes} selectedNodes={selectedNodes} handleSelectedNodes={handleSelectedNodes} />
+        <DagVisualizer 
+          nodes={nodes} 
+          links={links} 
+          handleLinks={handleLinks} 
+          handleNodes={handleNodes} 
+          selectedNodes={selectedNodes} 
+          handleSelectedNodes={handleSelectedNodes} 
+        />
         <FeedVeiwer />
       </div>
       {/* Input */}

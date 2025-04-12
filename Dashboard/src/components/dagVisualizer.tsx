@@ -103,7 +103,7 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
 
     // D3 visualization setup
     const width = 600;
-    const height = 1200;
+    const height = 800;
     
     // Remove previous SVG
     d3.select("#dag-container svg").remove();
