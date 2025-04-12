@@ -77,25 +77,15 @@ export default function Home() {
   const handleInput = async () => {
     if (!input.trim()) return;
 
+    const parentHash = selectedNode.cid;
     const signature = await signMessage();
     if (!signature) return;
 
-    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
-    console.log("FRONT-END input :>> ", input);
-    try {
-      const response = await fetch('/api/gen-fol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
+    const FOL = await getFOL(input);
+    if (!FOL) return;
 
-      const result = await response.json();
-      console.log("Agent response:", result);
-    } catch (error) {
-      console.error("Error fetching FOL data:", error);
-      toast.error("Failed to fetch FOL data.");
-      return;
-    }
+    // FIXME(yoojin): change title from getFOL
+    await createPullRequest(signature, parentHash, FOL, "Title");
 
     const newNode = createNewNode(input);
     setSelectedNode(newNode);
@@ -120,6 +110,25 @@ export default function Home() {
       return null;
     }
   };
+
+  const getFOL = async (input: string) => {
+    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    console.log("FRONT-END input :>> ", input);
+    try {
+      const response = await fetch('/api/gen-fol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Error fetching FOL data:", error);
+      toast.error("Failed to fetch FOL data.");
+      return;
+    }
+  }
 
   const createNewNode = (input: string) => {
     const newNode = {
@@ -164,6 +173,26 @@ export default function Home() {
     
     return {...newNode, cid, id: cid};
   };
+
+  const createPullRequest = async (signature: string, parentHash: string, FOL: string, title: string) => {
+    try {
+      const res = await fetch("/api/fol/pull-request", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          signature,
+          contents: FOL,
+          title,
+          parentHash,
+        }),
+      })
+      console.log('res.json() :>> ', res.json());
+      return;
+    } catch (error) {
+      console.error("Error create PR:", error);
+      toast.error("Failed to create Pull Request.");
+    }
+  }
 
   const mintAndRegisterNFT = async () => {
     if (!client) return;
