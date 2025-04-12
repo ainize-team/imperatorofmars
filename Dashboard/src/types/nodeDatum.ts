@@ -5,6 +5,8 @@ interface NodeDatum extends SimulationNodeDatum {
   id: string;
   // 추가로 필요한 속성이 있다면 여기에 추가
   group?: number;
+  message?: string;
+  type?: "message" | "hint"
 }
 
 export default NodeDatum;
