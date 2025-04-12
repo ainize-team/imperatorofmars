@@ -13,6 +13,67 @@ export class AnthropicService {
     });
   }
 
+  async verifyFol(
+    existingFol: string[],
+    newFol: string,
+  ): Promise<{ valid: boolean; reason?: string }> {
+    const prompt = `
+The following are FOL (first-order logic) records in time order and a new FOL sentence.
+[Existing FOL records]
+${existingFol.map((fol, index) => `${index + 1}. ${fol}`).join("\n")}
+
+[New FOL Sentence]
+${newFol}
+
+Please analyze the new FOL sentence in detail by following these steps:
+
+1. **Syntax Check**  
+ - Verify that the FOL sentence follows the correct syntax, including proper parentheses pairing and valid tokens.
+ - **Validation Rule:** Must adhere to the defined FOL grammatical structure.
+
+2. **Definition/Reference Consistency Check**  
+ - Check if the constants and predicates used in the new sentence are already defined in the existing records, or if they can be newly introduced without conflict.
+ - **Validation Rule:** Compare against the list of defined constants/predicates from the existing records.
+
+3. **Logical Contradiction Check**  
+ - Determine whether the new sentence contradicts any of the existing FOL records.
+ - **Validation Rule:** Evaluate logical consistency using inference rules; for example, if "IsPlanet(Mars)" is defined, a statement denying Mars as a planet would be a contradiction.
+For each step, if an issue is found, provide a detailed explanation along with the specific validation rule that failed.
+
+Please respond in the following JSON format:
+{
+  "valid": boolean,
+  "reason": string
+}`;
+
+    const response = await this.anthropic.messages.create({
+      model: "claude-3-opus-20240229",
+      max_tokens: 1500,
+      temperature: 0.0,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    if (response.content[0].type !== "text") {
+      return { valid: false, reason: "Invalid response format" };
+    }
+
+    try {
+      const result = JSON.parse(response.content[0].text);
+      return {
+        valid: result.valid,
+        reason: result.reason,
+      };
+    } catch (error) {
+      console.error("Error in verifyFol:", error);
+      return { valid: false, reason: "Failed to parse response" };
+    }
+  }
+
   async generateHtmlStory(
     folContents: string[],
     htmlContents: string[],
