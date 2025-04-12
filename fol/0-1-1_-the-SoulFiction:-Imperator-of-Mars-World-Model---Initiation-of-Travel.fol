@@ -1,0 +1,98 @@
+hash: c87a8a2befb1150d54cb1252ff437000f2e46fdbe474742943e48306af27526f
+parent_hash: 9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2
+signature: 0x15d1a0f174f3e352f5f5bdaa26eacac9fcd5bb6f9ba53910054e09b9160dddaa0e14a3d48433442ea891d04deb425b90e6786660bc75a944ce888eb4afe51d801c
+
+# First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model - Initiation of Travel
+# Represents the static, foundational knowledge of the Mars environment.
+# Date: 2025-04-12
+
+# ==============================================================================
+# Constants - Representing specific entities in the world
+# ==============================================================================
+
+Mars
+ImperatorOfMars
+OlympusMons
+VallesMarineris
+GaleCrater
+JezeroCrater
+Perseverance
+Curiosity
+NorthPole
+SouthPole
+WaterIce
+CarbonDioxide
+Rock
+Soil
+TravelEvent
+
+# ==============================================================================
+# Predicates - Defining properties and relationships
+# ==============================================================================
+
+# --- Types & Properties ---
+IsPlanet(object)
+IsEntity(object)
+IsMountain(object)
+IsValley(object)
+IsCrater(object)
+IsRover(object)
+IsPole(object)
+IsSubstance(object)
+IsRock(object)
+IsSoil(object)
+HasAtmosphere(planet)
+IsFrozen(substance)
+IsEvent(object)
+
+# --- Relationships & Locations ---
+LocatedOn(feature, planet)
+LocatedIn(entity, location)
+ExistsAt(substance, location)
+PrimaryAtmosphericComponent(planet, substance)
+OccurredEvent(event)
+
+# ==============================================================================
+# Facts - Specific knowledge about the Mars world (Updated with User Input)
+# ==============================================================================
+
+# --- Type Assertions ---
+IsPlanet(Mars)
+IsEntity(ImperatorOfMars)
+IsMountain(OlympusMons)
+IsValley(VallesMarineris)
+IsCrater(GaleCrater)
+IsCrater(JezeroCrater)
+IsRover(Perseverance)
+IsRover(Curiosity)
+IsPole(NorthPole)
+IsPole(SouthPole)
+IsSubstance(WaterIce)
+IsSubstance(CarbonDioxide)
+IsEvent(TravelEvent)
+
+# --- Property Assertions ---
+HasAtmosphere(Mars)
+PrimaryAtmosphericComponent(Mars, CarbonDioxide)
+IsFrozen(WaterIce)
+
+# --- Location & Relationship Assertions ---
+LocatedOn(OlympusMons, Mars)
+LocatedOn(VallesMarineris, Mars)
+LocatedOn(GaleCrater, Mars)
+LocatedOn(JezeroCrater, Mars)
+LocatedOn(NorthPole, Mars)
+LocatedOn(SouthPole, Mars)
+LocatedIn(Perseverance, JezeroCrater)
+LocatedIn(Curiosity, GaleCrater)
+
+# Substance locations
+ExistsAt(WaterIce, NorthPole)
+ExistsAt(WaterIce, SouthPole)
+ExistsAt(CarbonDioxide, Mars)
+
+OccurredEvent(TravelEvent)
+
+LocatedIn(TravelEvent, Mars)
+
+# --- End of FOL Definition ---
