@@ -34,7 +34,7 @@ export default function DagVisualizer({
 
   // Initialize API connection
   useEffect(() => {
-    const cid = "ce70fe06306f47cee1fa8ce11134df823f1793108d17c522ce9e8c421fb9e3df";
+    const cid = "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b";
     console.log('cid :>> ', cid);
     if (cid) {
       setFetchingCid(cid);
@@ -113,7 +113,7 @@ export default function DagVisualizer({
     if (nodes.length === 0 || typeof window === 'undefined') return;
 
     // D3 visualization setup
-    const width = 600;
+    const width = 500;
     const height = 800;
     
     // Remove previous SVG
