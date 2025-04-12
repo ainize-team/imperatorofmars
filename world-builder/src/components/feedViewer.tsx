@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-// PR 데이터를 위한 타입 정의 (유저 정보는 제거)
+// Type definition for PR data (user information is removed)
 interface PRItemProps {
   number: number;
   title: string;
@@ -12,16 +12,16 @@ interface PRItemProps {
   state: string;
 }
 
-// 상태에 따른 아이콘 결정 함수
+// Function to determine the icon according to the state
 function getStateIcon(state: string) {
   if (state === "open") return "🟢";
   if (state === "closed") return "🔴";
   return "⚪";
 }
 
-// PR 하나를 렌더링하는 컴포넌트
+// Component to render a single PR
 function PRItem({ number, title, html_url, head, state }: PRItemProps) {
-  // head.sha의 앞 7자리만 표시
+  // Display only the first 7 characters of head.sha
   const stateIcon = getStateIcon(state);
 
   return (
@@ -42,7 +42,7 @@ function PRItem({ number, title, html_url, head, state }: PRItemProps) {
   );
 }
 
-// 피드 전체를 렌더링하는 컴포넌트
+// Component to render the entire feed
 export default function FeedViewer() {
   const [nodePRs, setNodePRs] = useState<PRItemProps[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +52,11 @@ export default function FeedViewer() {
       try {
         const res = await fetch("/api/fol/feed");
         if (!res.ok) {
-          throw new Error("피드를 불러오는데 실패했습니다.");
+          throw new Error("Failed to load the feed.");
         }
         const data = await res.json();
         if (data.nodePRs && data.nodePRs.length > 0) {
-          // 불필요한 유저 정보는 제외하여 설정
+          // Exclude unnecessary user information and set
           const prList: PRItemProps[] = data.nodePRs.map((pr: any) => ({
             number: pr.number,
             title: pr.title,
@@ -78,7 +78,7 @@ export default function FeedViewer() {
       <h2 className="text-base font-bold mb-2">Feed</h2>
       <div className="overflow-auto max-h-[400px] mx-2 text-sm">
         {error && <p className="text-red-500">{error}</p>}
-        {!error && nodePRs.length === 0 && <p>현재 노드 브랜치의 PR이 없습니다.</p>}
+        {!error && nodePRs.length === 0 && <p>There are no PRs for the current node branch.</p>}
         {nodePRs.map((pr) => (
           <PRItem
             key={pr.number}
