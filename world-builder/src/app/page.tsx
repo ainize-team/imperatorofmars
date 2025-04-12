@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSignMessage, useWalletClient } from "wagmi";
 import CryptoJS from "crypto-js";
 import toast from "react-hot-toast";
@@ -20,7 +20,7 @@ import {
 } from "@/lib/constants";
 import { Address, zeroAddress } from "viem";
 import { getFileHash } from "@/lib/functions/file";
-import { mockHintNodes } from "@/moks/mockNodes";
+import mockNodes, { mockHintNodes } from "@/moks/mockNodes";
 import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
 
 export default function Home() {
@@ -34,6 +34,22 @@ export default function Home() {
   const { data: wallet } = useWalletClient();
   const { signMessageAsync } = useSignMessage();
   const { client } = useStory();
+
+  useEffect(() => {
+    const nodes = []
+    const links = []
+    for (const [cid, node] of Object.entries(mockNodes)) {
+      console.log('cid :>> ', cid);
+      nodes.push(node);
+      node.children.forEach((cid: string) => {
+        links.push({ source: node.cid, target: cid, group: node.type === "hint" ? "dotted" : "solid" });
+      })
+    };
+    console.log('nodes, links :>> ', nodes, links);
+
+    setNodes(nodes);
+    setLinks(links);
+  }, [])
 
   const handleNodes = (newNode: any) => {
     setNodes((prevNodes: any) => [...prevNodes, newNode]);
