@@ -4,7 +4,7 @@ This project implements an automated validation process for First-Order Logic (F
 
 ## Process Flow
 
-<img src="images/user_commit.png" alt="FOL Submission" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
+<img src="images/user-commit.png" alt="FOL Submission" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 1. **FOL Creation and Submission**
 
