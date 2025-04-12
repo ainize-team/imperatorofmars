@@ -1,7 +1,7 @@
 # NEAR AI Bounty
 
 
-## Creating & Uploading Agents to be hosted on the [NEAR Agent Hub](https://app.near.ai/agents)
+## A) Creating & Uploading Agents to be hosted on the [NEAR Agent Hub](https://app.near.ai/agents)
 
 <p align="center">
   <img src="./src/nearai_uploaded_agents3.png" alt="terminal view when uploading an agent">
@@ -14,7 +14,7 @@
   <img src="./src/nearai_uploaded_agents1.png" alt="Fullview of Agent Hub page">
 </p>
 
-## Responses from Agents
+## B) Responses from Agents
 
 ### 1) Generated First-Order Logic from a Natural Language Prompt
 #### 1-1) User Input (Natural Language)
@@ -39,3 +39,9 @@
   <img src="./src/nearai_fol2html_res.png" alt="Fullview of Agent Hub page">
 </p>
 
+## C) Intent Generation (TBD)
+### Grwoing potatoes? or Seeking for water outside?
+
+
+## D) Benchmark Evaluation (TBD)
+### Research is required... 
