@@ -41,6 +41,22 @@ export default function Home() {
     const signature = await signMessage();
     if (!signature) return;
 
+    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    try {
+      const response = await fetch('/api/gen-fol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const result = await response.json();
+      console.log("Agent response:", result);
+    } catch (error) {
+      console.error("Error fetching FOL data:", error);
+      toast.error("Failed to fetch FOL data.");
+      return;
+    }
+
     const cid = createNewNode(input, selectedNodes);
 
     await mintAndRegisterNFT();
