@@ -186,7 +186,11 @@ export default function DagVisualizer({
           .on("end", dragended))
       .on("click", (event, d) => {
         // Toggle node selection
-        handleSelectedNodes(d);
+        if (d.type === "hint") {
+          handleInput(d.message || "");
+        } else {
+          handleSelectedNodes(d);
+        }
         event.stopPropagation();
       });
     
