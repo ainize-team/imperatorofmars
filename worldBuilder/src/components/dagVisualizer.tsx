@@ -34,7 +34,7 @@ export default function DagVisualizer({
 
   // Initialize API connection
   useEffect(() => {
-    const cid = "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b";
+    const cid = "ebf6267e59b8ca6124d7532cb5fd130e75c338d88c8bf8b182bfa644e6bce2df";
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
