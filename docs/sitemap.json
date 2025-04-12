@@ -1,12 +1,12 @@
 [
   {
     "index": 0,
-    "file": "0-genesis.html",
+    "file": "0_genesis.html",
     "title": "Genesis"
   },
   {
     "index": 1,
-    "file": "1-departure.html",
+    "file": "1_departure.html",
     "title": "Departure"
   },
 ]
