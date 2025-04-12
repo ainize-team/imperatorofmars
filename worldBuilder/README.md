@@ -1,36 +1,21 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Imperator of Mars World Builder
+World Builder 는 Genesis FOL 에 기반한 스토리를 생성할 수 있는 도구이다.
 
-## Getting Started
+![main](./screenshot/0.main.png)
+## Genesis FOL
 
-First, run the development server:
+[Genesis FOL](https://github.com/ainize-team/imperatorofmars/blob/main/fol/0_genesis_9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2.fol) 은 이야기의 가장 근본적인 법칙이다.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Generate The Story
+###
+![1-1.Input text and Sign](./screenshot/1-1.input%20text%20and%20sign.png)
+각 입력마다 FOL 에 따른 스토리가 생성되고, 지갑 서명으로 책임소재를 투명하게 관리한다. 
+스토리 진행에 따라 상태는 새로운 FOL이 되며 DAG에 저장된다.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+생성된 FOL로 PR을 생성하면, FOL의 정합성을 검증한다. 검증된 PR은 Merge가 가능해지고, Merge되면 FOL과 입력에 따른 스토리를 생성해 HTML로 자동배포된다. Check [Validate FOL](../validate-fol/README.md)
+###
+![1-2.Generate Node](./screenshot/1-2.generate%20node.png)
+서명 및 FOL 검증이 완료되어 DAG에 저장된 노드는 Visualizer 에서 확인할 수 있다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![1-3.DAG Data Graph](./screenshot/1-3.dag%20data%20graph.png)
+연결할 노드를 선택한 뒤 prompt를 입력하면 똑같은 생성 프로세스를 거친 뒤 새로운 노드가 연결된다. 주황색 노드는 다음 스토리에 대한 추천 Prompt를 제시하며 클릭으로 간편하게 다음 FOL 생성할 수 있다.
