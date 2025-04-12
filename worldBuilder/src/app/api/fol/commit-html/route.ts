@@ -42,8 +42,7 @@ export async function POST(request: NextRequest) {
         const githubService = new GitHubService();
         const anthropicService = new AnthropicService();
 
-        // 2. 작업할 브랜치는 "chain"으로 가정할 수도 있지만, 여기서는 branch를 그대로 사용함.
-        // GitHubService에서 주어진 branch를 사용할 때, base SHA를 얻어 branch를 생성 또는 획득한다.
+        // 2. 주어진 branch를 그대로 사용하여 브랜치 생성/획득
         const baseSha = await githubService.getMainBranchSha();
         await githubService.createOrGetBranch(branch, baseSha);
 
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
         const chain = []; // Genesis -> tip 순으로 저장할 배열
         let currentFile = tipFile;
         // 빠른 검색을 위해 체인 파일을 해시(key)로 매핑
-        const fileMap = {};
+        const fileMap: { [key: string]: any } = {};
         for (const file of chainFiles) {
             const fileName = file.path.split("/").pop();
             const info = extractNumberAndHash(fileName || "");
@@ -95,7 +94,7 @@ export async function POST(request: NextRequest) {
             }
         }
         while (currentFile) {
-            chain.unshift(currentFile); // 앞쪽에 추가: 결국 genesis부터 tip 순이 됨
+            chain.unshift(currentFile); // unshift하면 genesis부터 tip 순이 됨
             const parentHash = parseParent(currentFile.content);
             if (!parentHash) break;
             const parentFile = fileMap[parentHash];
@@ -108,10 +107,19 @@ export async function POST(request: NextRequest) {
         // docs 폴더 내 HTML 파일명 배열 (같은 순서, 확장자만 .html)
         const sortedDocFiles = sortedFolFiles.map((f) => f?.replace(/\.fol$/, ".html"));
 
-        // 7. Anthropic 서비스를 사용해 HTML 스토리 생성 (체인 전체를 전달)
-        const htmlStory = await anthropicService.generateHtmlStory(chain);
+        // 7. Anthropic 서비스를 사용해 HTML 스토리 생성
+        // 여기서는 두 개의 배열을 전달합니다.
+        // folContents: 각 FOL 파일의 원래 내용 배열
+        // htmlContents: 각 FOL 파일 내용을 <pre> 태그로 감싼 HTML 형식의 내용 배열
+        const folContents = chain.map((file) => file.content);
+        const htmlContents = chain.map(
+            (file) => `<pre>${file.content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`,
+        );
+        console.log("folContents", folContents);
+        console.log("htmlContents", htmlContents);
+        const htmlStory = await anthropicService.generateHtmlStory(folContents, htmlContents);
 
-        // 8. docs 폴더 내 보고서 파일 생성: FOL 파일 이름과 동일하게
+        // 8. docs 폴더 내 보고서 파일 생성: tip 파일과 동일한 이름(확장자만 .html)
         const tipFileName =
             tipFilePath
                 .split("/")
@@ -130,8 +138,8 @@ export async function POST(request: NextRequest) {
         const result = {
             message: "HTML files committed successfully.",
             htmlFile: htmlFilePath,
-            folChain: sortedFolFiles,
-            docsChain: sortedDocFiles,
+            folChain: sortedFolFiles, // 예: ["0_genesis_abcdef.fol", "1_auto_123456.fol", ...]
+            docsChain: sortedDocFiles, // 예: ["0_genesis_abcdef.html", "1_auto_123456.html", ...]
         };
 
         return NextResponse.json(result);
