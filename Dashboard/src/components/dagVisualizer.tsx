@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from 'react';
 import * as d3 from 'd3';
-import { useSearchParams } from 'next/navigation';
 import NodeDatum from '@/types/nodeDatum';
 import LinkDatum from '@/types/linkDatum';
 
@@ -23,17 +23,15 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
   const [fetchingCid, setFetchingCid] = useState<string>('');
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
-  const searchParams = useSearchParams();
-
   // Initialize API connection
   useEffect(() => {
-    const cid = searchParams.get("cid");
+    const cid = "1f76cfcc484e26c8a61aaf5465c3fad759f847c93f6bbe50048b5556309d594e";
     console.log('cid :>> ', cid);
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
     }
-  }, [searchParams]);
+  }, []);
 
   // Fetch node by CID
   const fetchNodeByCid = async (cid: string) => {
