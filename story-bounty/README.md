@@ -46,7 +46,6 @@ This is recorded in **DAG Node**, and immediately recognized as a potential **IP
 The discovery is visualized and described (text, concept art, scientific notes) and uploaded to IPFS:
 
 ![step1_1](./image/1_1_upload_ipfs.png)
-![step1_2](./image/1_2_upload_ipfs.png)
 
 ### 🪙 Step 3. Mint and Register IP via Story Protocol
 Echo mints the asset as an NFT and formally registers it as IP using the Story SDK:
@@ -98,8 +97,6 @@ const commercialRemixTerms: LicenseTerms = {
   uri: "",
 };
 ```
-
-
 
 ### Why This Matters
 
