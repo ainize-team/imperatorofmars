@@ -1,7 +1,20 @@
 # NEAR AI Bounty
 
+# Req1: Agent must be hosted on the [NEAR Agent Hub](https://app.near.ai/agents)
 
-## A) Creating & Uploading Agents to be hosted on the [NEAR Agent Hub](https://app.near.ai/agents)
+## Uploaded URL hosted by NEAR Hub: https://app.near.ai/profiles/kyungmoonleecomcom.near
+
+## Agent "Text2FOL"
+
+## Agent "FOL2HTML"
+
+## Agent "Story Chainer" (TBD. Intent Handler)
+
+# Req2: "Code must be in a public repository
+
+# Req3: "Quantitative Benchmarks for Agent Performance" (TBD)
+## 에이전트 조합에 대한 성능 테이블이 보여질 예정이며, [튜토리얼](https://docs.near.ai/models/benchmarks_and_evaluations) 보고 적용 예정.
+
 
 <p align="center">
   <img src="./src/nearai_uploaded_agents3.png" alt="terminal view when uploading an agent">
