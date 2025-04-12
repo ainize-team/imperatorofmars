@@ -68,7 +68,10 @@ console.log(`IPA created at tx hash ${response.txHash}, IPA ID: ${response.ipId}
 This locks authorship and gives Echo on-chain credit for the discovery.
 
 ![step2_1](./image/2_1_mint_register_ip.png)
-![step1_2](./image/2_2_metamask.png)
+![step2_2](./image/2_2_metamask.png)
+[![step2_3](./image/2_3_story_explorer.png)](https://aeneid.explorer.story.foundation/ipa/0x343424AB42d181FA34b10B53c9702cD2c30D2082)
+*Click to navigate to Story Explorer*
+
 
 ### 📄 Step 4. Licensing the Asset for Derivative Use
 
@@ -95,6 +98,8 @@ const commercialRemixTerms: LicenseTerms = {
   uri: "",
 };
 ```
+
+
 
 ### Why This Matters
 

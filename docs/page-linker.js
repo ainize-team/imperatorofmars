@@ -18,9 +18,6 @@
             // Parse the JSON data
             const pages = await response.json();
             console.log("Sitemap loaded:", pages); // 디버깅을 위한 로그
-            
-            // Add image if it exists
-            await tryAddImage(currentPage.index);
 
             // Add the next page link
             addNextPageLink(pages);
@@ -181,6 +178,9 @@
             console.warn("Current page not found in sitemap");
             return;
         }
+        
+        // Add image if it exists
+        tryAddImage(currentPage.index);
         
         const nextPage = findNextPage(pages, currentPage);
         

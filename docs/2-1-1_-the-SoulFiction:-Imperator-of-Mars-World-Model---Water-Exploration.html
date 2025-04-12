@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,28 @@
     <style>
         body {
             font-family: 'Times New Roman', Times, serif;
+            /* Using a serif font for a more narrative feel */
             line-height: 1.8;
             margin: 40px auto;
             max-width: 800px;
+            /* Centered content */
             background-color: #fff5f0;
+            /* Pale background, slightly reddish */
             color: #4a4a4a;
+            padding: 0 20px;
+            /* 기본 좌우 여백 추가 */
+            box-sizing: border-box;
         }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 20px auto;
+                padding: 0 20px;
+                /* 모바일에서도 좌우 여백 유지 */
+                max-width: 100%;
+            }
+        }
+
         h1 {
             text-align: center;
             color: #a0522d;
@@ -20,35 +37,43 @@
             padding-bottom: 10px;
             margin-bottom: 30px;
         }
+
         p {
             text-indent: 2em;
             margin-bottom: 1.2em;
             text-align: justify;
         }
+
         .location {
             font-weight: bold;
             color: #556b2f;
         }
+
         .entity {
             font-weight: bold;
             color: #4682b4;
         }
+
         .substance {
             font-style: italic;
             color: #708090;
         }
+
         .human {
             font-weight: bold;
             color: #8b0000;
         }
+
         .crisis {
             font-weight: bold;
             color: #dc143c;
         }
+
         .discovery {
             font-weight: bold;
             color: #006400;
         }
+
         .footnote {
             font-size: 0.8em;
             color: #888;
@@ -59,30 +84,63 @@
         }
     </style>
 </head>
+
 <body>
     <h1>SoulFiction: The Quest for Water</h1>
 
-    <p>As the <span class="crisis">food shortage</span> crisis deepened, the <span class="human">colonists</span> on <span class="location">Mars</span> grew increasingly desperate. They knew that their survival hinged on finding a sustainable source of nourishment, and in the harsh Martian environment, that meant one thing above all else: <span class="substance">water</span>.</p>
+    <p>As the <span class="crisis">food shortage</span> crisis deepened, the <span class="human">colonists</span> on
+        <span class="location">Mars</span> grew increasingly desperate. They knew that their survival hinged on finding
+        a sustainable source of nourishment, and in the harsh Martian environment, that meant one thing above all else:
+        <span class="substance">water</span>.</p>
 
-    <p>The <span class="entity">Imperator</span>, observing the unfolding drama, understood the gravity of the situation. <span class="substance">Water</span> was the key to life, and if the <span class="human">colonists</span> could find it in sufficient quantities, they might just have a chance.</p>
+    <p>The <span class="entity">Imperator</span>, observing the unfolding drama, understood the gravity of the
+        situation. <span class="substance">Water</span> was the key to life, and if the <span
+            class="human">colonists</span> could find it in sufficient quantities, they might just have a chance.</p>
 
-    <p>Fortunately, the <span class="entity">Imperator</span> knew that <span class="location">Mars</span> held secrets beneath its rusty surface. The <span class="substance">water ice</span> at the <span class="location">poles</span> was just the beginning. There were places on the planet where <span class="substance">liquid water</span> might still flow, hidden away in underground aquifers or trapped in ancient rocks.</p>
+    <p>Fortunately, the <span class="entity">Imperator</span> knew that <span class="location">Mars</span> held secrets
+        beneath its rusty surface. The <span class="substance">water ice</span> at the <span
+            class="location">poles</span> was just the beginning. There were places on the planet where <span
+            class="substance">liquid water</span> might still flow, hidden away in underground aquifers or trapped in
+        ancient rocks.</p>
 
-    <p>The <span class="entity">rovers</span>, <span class="entity">Curiosity</span> and <span class="entity">Perseverance</span>, were the key to unlocking these secrets. They had been designed to search for signs of past habitability, and now, that mission had taken on a new urgency. If they could find evidence of <span class="substance">water</span>, it might just save the <span class="human">colonists</span>' lives.</p>
+    <p>The <span class="entity">rovers</span>, <span class="entity">Curiosity</span> and <span
+            class="entity">Perseverance</span>, were the key to unlocking these secrets. They had been designed to
+        search for signs of past habitability, and now, that mission had taken on a new urgency. If they could find
+        evidence of <span class="substance">water</span>, it might just save the <span class="human">colonists</span>'
+        lives.</p>
 
-    <p>The <span class="entity">Imperator</span> watched as the <span class="entity">rovers</span> set out, trundling across the Martian landscape with renewed purpose. <span class="entity">Curiosity</span> explored the depths of <span class="location">Gale Crater</span>, while <span class="entity">Perseverance</span> roamed the ancient river delta in <span class="location">Jezero Crater</span>. They drilled into rocks, analyzed soil samples, and sent back data to the eager <span class="human">colonists</span>.</p>
+    <p>The <span class="entity">Imperator</span> watched as the <span class="entity">rovers</span> set out, trundling
+        across the Martian landscape with renewed purpose. <span class="entity">Curiosity</span> explored the depths of
+        <span class="location">Gale Crater</span>, while <span class="entity">Perseverance</span> roamed the ancient
+        river delta in <span class="location">Jezero Crater</span>. They drilled into rocks, analyzed soil samples, and
+        sent back data to the eager <span class="human">colonists</span>.</p>
 
-    <p>And then, a breakthrough. In a layer of clay at the base of <span class="location">Jezero Crater</span>, <span class="entity">Perseverance</span> found it: unequivocal evidence of <span class="discovery">water</span>. Not just ancient, dried-up rivers, but <span class="substance">water</span> that might still be accessible, trapped in porous rocks beneath the surface.</p>
+    <p>And then, a breakthrough. In a layer of clay at the base of <span class="location">Jezero Crater</span>, <span
+            class="entity">Perseverance</span> found it: unequivocal evidence of <span class="discovery">water</span>.
+        Not just ancient, dried-up rivers, but <span class="substance">water</span> that might still be accessible,
+        trapped in porous rocks beneath the surface.</p>
 
-    <p>The <span class="human">colonists</span> rejoiced at the news. This was the lifeline they had been hoping for. With the <span class="entity">rovers</span>' guidance, they could locate and extract this precious resource, using it to grow crops, sustain themselves, and even, perhaps, to begin terraforming <span class="location">Mars</span> into a more hospitable world.</p>
+    <p>The <span class="human">colonists</span> rejoiced at the news. This was the lifeline they had been hoping for.
+        With the <span class="entity">rovers</span>' guidance, they could locate and extract this precious resource,
+        using it to grow crops, sustain themselves, and even, perhaps, to begin terraforming <span
+            class="location">Mars</span> into a more hospitable world.</p>
 
-    <p>The <span class="entity">Imperator</span> observed this turning point with a sense of satisfaction. The <span class="human">colonists</span> had faced a dire challenge, but through perseverance and ingenuity, they had found a way forward. This was the resilience of life, the determination to survive and thrive against all odds. It was a story as old as time, and yet, on the surface of <span class="location">Mars</span>, it felt brand new.</p>
+    <p>The <span class="entity">Imperator</span> observed this turning point with a sense of satisfaction. The <span
+            class="human">colonists</span> had faced a dire challenge, but through perseverance and ingenuity, they had
+        found a way forward. This was the resilience of life, the determination to survive and thrive against all odds.
+        It was a story as old as time, and yet, on the surface of <span class="location">Mars</span>, it felt brand new.
+    </p>
 
-    <p>As the <span class="human">colonists</span> began the work of extracting and purifying the <span class="substance">water</span>, the <span class="entity">Imperator</span> knew that this was just the beginning. The human presence on <span class="location">Mars</span> had faced its first great test, and it had emerged stronger for it. What new challenges and triumphs lay ahead? Only time would tell, but one thing was certain: the story of humanity on <span class="location">Mars</span> was just beginning to unfold.</p>
+    <p>As the <span class="human">colonists</span> began the work of extracting and purifying the <span
+            class="substance">water</span>, the <span class="entity">Imperator</span> knew that this was just the
+        beginning. The human presence on <span class="location">Mars</span> had faced its first great test, and it had
+        emerged stronger for it. What new challenges and triumphs lay ahead? Only time would tell, but one thing was
+        certain: the story of humanity on <span class="location">Mars</span> was just beginning to unfold.</p>
 
     <p class="footnote">Based on the updated First-Order Logic definitions in 4_water_exploration.fol.</p>
     <!-- This script will automatically add the "Next" link at the bottom of the page -->
     <script src="/page-linker.js"></script>
 
 </body>
+
 </html>
