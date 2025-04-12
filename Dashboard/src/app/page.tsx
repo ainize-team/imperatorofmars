@@ -65,7 +65,8 @@ export default function Home() {
     if (!signature) return;
 
     const cid = createNewNode(input, selectedNodes);
-    setSelectedNodes([cid]);
+    console.log('cid :>> ', cid);
+    setSelectedNodes([]);
 
     await mintAndRegisterNFT();
 
@@ -108,8 +109,14 @@ export default function Home() {
         ]
     );
     selectedNodes.forEach((node: any) => {
-      setLinks((prevLinks: any) => [...prevLinks.filter((link: any) => link.type !== "dotted"), { source: cid, target: node.id },
-        ...hintLinks]);
+      setLinks(
+        (prevLinks: any) => 
+          [
+            ...prevLinks.filter((link: any) => link.type !== "dotted"),
+            { source: cid, target: node.id },
+            ...hintLinks
+          ]
+      );
     });
     return cid;
   };

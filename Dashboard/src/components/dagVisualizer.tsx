@@ -35,16 +35,11 @@ export default function DagVisualizer({
   // Initialize API connection
   useEffect(() => {
     const cid = "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b";
-    console.log('cid :>> ', cid);
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
     }
   }, []);
-
-  useEffect(() => {
-    console.log('nodes :>> ', nodes);
-  }, [nodes]);
 
   // Fetch node by CID
   const fetchNodeByCid = async (cid: string) => {
@@ -73,7 +68,6 @@ export default function DagVisualizer({
           try {
             const nodeResponse = await fetch(`/api/dag/get?cid=${edge!.cid}`);
             const nodeResult = await nodeResponse.json();
-            console.log('nodeResult :>> ', nodeResult);
             if (nodeResult && !nodes.some((n: any) => n.cid === nodeResult.cid)) {
               const node = {
                 id: nodeResult.cid,
@@ -111,7 +105,6 @@ export default function DagVisualizer({
   // Initialize D3 visualization
   useEffect(() => {
     if (nodes.length === 0 || typeof window === 'undefined') return;
-
     // D3 visualization setup
     const width = 500;
     const height = 800;
