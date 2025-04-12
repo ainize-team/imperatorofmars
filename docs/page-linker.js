@@ -19,6 +19,9 @@
             const pages = await response.json();
             console.log("Sitemap loaded:", pages); // 디버깅을 위한 로그
             
+            // Add image if it exists
+            await tryAddImage(currentPage.index);
+
             // Add the next page link
             addNextPageLink(pages);
             
@@ -95,6 +98,77 @@
         `;
         
         document.head.appendChild(styles);
+    }
+    
+    /**
+     * Try to add an image based on the current page index
+     */
+    async function tryAddImage(index) {
+        const imagePath = `${index}.png`;
+        
+        // Check if the image exists
+        try {
+            // Use fetch to check if the image exists
+            const response = await fetch(imagePath, { method: 'HEAD' });
+            
+            if (response.ok) {
+                // Image exists, add it to the page
+                addImageToPage(imagePath);
+                console.log(`Added image: ${imagePath}`);
+            } else {
+                console.log(`Image not found: ${imagePath}`);
+            }
+        } catch (error) {
+            console.log(`Error checking image: ${error.message}`);
+            
+            // Alternative approach: try to add the image anyway and let the browser handle missing images
+            addImageToPage(imagePath);
+        }
+    }
+    
+    /**
+     * Add an image to the page
+     */
+    function addImageToPage(imagePath) {
+        // Add styles for the image container
+        const styles = document.createElement('style');
+        styles.textContent = `
+            .page-image-container {
+                margin: 20px 0;
+                text-align: center;
+            }
+            .page-image {
+                max-width: 100%;
+                height: auto;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+        `;
+        document.head.appendChild(styles);
+        
+        // Create image container
+        const container = document.createElement('div');
+        container.className = 'page-image-container';
+        
+        // Create image element
+        const img = document.createElement('img');
+        img.src = imagePath;
+        img.className = 'page-image';
+        img.alt = 'Page Illustration';
+        
+        // Add image to the container
+        container.appendChild(img);
+        
+        // Find a good place to insert the image (after the first heading or at the top of the body)
+        const firstHeading = document.querySelector('h1, h2');
+        if (firstHeading) {
+            // Insert after the first heading
+            firstHeading.parentNode.insertBefore(container, firstHeading.nextSibling);
+        } else {
+            // Insert at the beginning of the body
+            const body = document.body;
+            body.insertBefore(container, body.firstChild);
+        }
     }
     
     /**
