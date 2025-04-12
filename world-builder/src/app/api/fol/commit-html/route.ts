@@ -110,24 +110,27 @@ export async function POST(request: NextRequest) {
     // 6. Creates an array of sorted FOL file names (e.g., ["0_genesis.fol", "1_auto.fol", ...])
     const sortedFolFiles = chain.map((file) => file.path.split("/").pop());
     // Array of HTML file names in the docs folder (same order, extension changed to .html)
-    const sortedDocFiles = sortedFolFiles.map((f) => f?.replace(/\.fol$/, ".html"));
+    const sortedDocFiles = chain
+      .map((file) => file.path.split("/").pop())
+      .filter((f): f is string => f !== undefined)
+      .map((f) => f.replace(/\.fol$/, ".html"))
+      .slice(0, -1);
     console.log("sortedDocFiles", sortedDocFiles);
     // 7. Retrieves the actual content of the HTML files in the docs folder
     const docContents = await Promise.all(
-      sortedDocFiles.slice(0, -1).map(async (docFile) => {
+      sortedDocFiles.map(async (docFile) => {
         const docFilePath = `docs/${docFile}`;
         const docContent = await githubService.getFileContent(docFilePath, branch);
         return docContent;
       }),
     );
-    // Uses the Anthropic service to generate an HTML story
-    // Here, two arrays are passed.
-    // folContents: array of original contents of each FOL file
-    // htmlContents: array of contents of each FOL file in HTML format wrapped in <pre> tags
+
     const folContents = chain.map((file) => file.content);
-    console.log("folContents", folContents);
-    console.log("htmlContents", docContents);
-    const htmlStory = await anthropicService.generateHtmlStory(folContents, docContents);
+    const htmlStory = await anthropicService.generateHtmlStory(
+      folContents,
+      docContents,
+      sortedDocFiles,
+    );
 
     // 8. Creates a report file in the docs folder: same name as the tip file (extension changed to .html)
     const tipHtmlFileName =
@@ -136,6 +139,25 @@ export async function POST(request: NextRequest) {
         .pop()
         ?.replace(/\.fol$/, ".html") || "";
     const htmlFilePath = `docs/${tipHtmlFileName}`;
+
+    //docContents 와 sortedDocFiles 의 마지막 인덱스를 가져와서 안트로픽서비스 어펜트 next 버튼 메소드에 너허줘
+    const lastDocContent = docContents[docContents.length - 1];
+    const lastDocFile = sortedDocFiles[sortedDocFiles.length - 1];
+    const appendedPrevHtml = await anthropicService.appendNextButton(
+      lastDocContent,
+      tipHtmlFileName,
+    );
+
+    // 이전 HTML 파일 업데이트
+    const prevHtmlFilePath = `docs/${lastDocFile}`;
+    const prevFileSha = await githubService.getFileSha(prevHtmlFilePath, branch);
+    await githubService.createOrUpdateFile(
+      prevHtmlFilePath,
+      appendedPrevHtml,
+      branch,
+      prevFileSha || undefined,
+    );
+
     const existingFileSha = await githubService.getFileSha(htmlFilePath, branch);
     await githubService.createOrUpdateFile(
       htmlFilePath,
