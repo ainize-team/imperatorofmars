@@ -32,7 +32,7 @@ function parseParentHash(content: string): string | null {
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. Extracts the branch name from the request
+    // 1. Extract the branch name from the request.
     const { branch } = await request.json();
     if (!branch) {
       return NextResponse.json({ error: "branch is required." }, { status: 400 });
@@ -44,12 +44,13 @@ export async function POST(request: NextRequest) {
     const githubService = new GitHubService();
     const anthropicService = new AnthropicService();
 
-    // 2. Uses the given branch directly to create or get the branch
+    // 2. Use the given branch directly to create or get the branch.
     const baseSha = await githubService.getMainBranchSha();
     await githubService.createOrGetBranch(branch, baseSha);
-    // 3. Retrieves all FOL files within the "fol" folder of the given branch (complete list)
+
+    // 3. Retrieve all FOL files within the "fol" folder of the branch (complete list).
     const allFolFiles = await githubService.getFolderFiles("fol", branch);
-    // Filters out only valid chain files (filename format: {id}_{title}.fol, id is a "number" or "number-number-number" etc)
+    // Filters valid chain files (filename format: {id}_{title}.fol, id is "number" or similar).
     const chainFiles = allFolFiles.filter((file) => {
       const fileName = file.path.split("/").pop() || "";
       return /^(\d+(?:-\d+)*)_([^_]+)\.fol$/.test(fileName);
@@ -60,9 +61,10 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    // 4. Retrieves the list of files changed in the latest commit (using GitHub API)
+
+    // 4. Retrieve the list of files changed in the latest commit.
     const changedFiles = await githubService.getLatestCommitChangedFiles(branch);
-    // Selects only files that start with "fol/" and end with .fol from the changed files
+    // Select files that start with "fol/" and end with ".fol".
     const changedFolFiles = changedFiles.filter(
       (fname) => fname.startsWith("fol/") && fname.endsWith(".fol"),
     );
@@ -72,7 +74,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    // Uses the first changed FOL file as the tipFile
+    // Use the first changed FOL file as the tip file.
     const tipFilePath = changedFolFiles[0];
     const tipFile = chainFiles.find((file) => file.path === tipFilePath);
     if (!tipFile) {
@@ -82,11 +84,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 5. Tracks the parent chain up to genesis (starting from tipFile)
-    const chain = []; // Stores in the order of Genesis to tip
+    // 5. Track the parent chain up to genesis (starting from tipFile).
+    const chain: Array<{ path: string; content: string }> = [];
     let currentFile = tipFile;
-
-    // Maps chain files by their "hash:" (their own hash) for fast lookup
+    // Map chain files by their "hash:" (own hash) for fast lookup.
     const fileMap: { [key: string]: { path: string; content: string } } = {};
     for (const file of chainFiles) {
       const ownHash = parseFileHash(file.content);
@@ -95,10 +96,10 @@ export async function POST(request: NextRequest) {
       }
     }
     console.log("fileMap", Object.keys(fileMap));
-    // Chain tracking: reads the "parent_hash:" value from the current file's content to find the parent file
+    // Chain tracking: read "parent_hash:" value to find parent file.
     while (currentFile) {
       console.log("currentFile", currentFile.path);
-      chain.unshift(currentFile); // unshift to get the order of Genesis to tip
+      chain.unshift(currentFile); // unshift to have Genesis → tip order.
       const parentHash = parseParentHash(currentFile.content);
       console.log("parentHash", parentHash);
       if (!parentHash) break;
@@ -107,16 +108,18 @@ export async function POST(request: NextRequest) {
       currentFile = parentFile;
     }
     console.log("chain", chain);
-    // 6. Creates an array of sorted FOL file names (e.g., ["0_genesis.fol", "1_auto.fol", ...])
+
+    // 6. Create an array of sorted FOL file names (e.g., ["0_genesis.fol", "1_auto.fol", ...]).
     const sortedFolFiles = chain.map((file) => file.path.split("/").pop());
-    // Array of HTML file names in the docs folder (same order, extension changed to .html)
+    // Generate HTML file names (change extension to .html) from chain FOL files.
     const sortedDocFiles = chain
       .map((file) => file.path.split("/").pop())
       .filter((f): f is string => f !== undefined)
       .map((f) => f.replace(/\.fol$/, ".html"))
       .slice(0, -1);
     console.log("sortedDocFiles", sortedDocFiles);
-    // 7. Retrieves the actual content of the HTML files in the docs folder
+
+    // 7. Retrieve the actual content of the HTML files in the docs folder.
     const docContents = await Promise.all(
       sortedDocFiles.map(async (docFile) => {
         const docFilePath = `docs/${docFile}`;
@@ -126,29 +129,23 @@ export async function POST(request: NextRequest) {
     );
 
     const folContents = chain.map((file) => file.content);
-    const htmlStory = await anthropicService.generateHtmlStory(
-      folContents,
-      docContents,
-      sortedDocFiles,
-    );
 
-    // 8. Creates a report file in the docs folder: same name as the tip file (extension changed to .html)
+    // Get necessary values for the next button
     const tipHtmlFileName =
       tipFilePath
         .split("/")
         .pop()
         ?.replace(/\.fol$/, ".html") || "";
-    const htmlFilePath = `docs/${tipHtmlFileName}`;
-
-    //docContents 와 sortedDocFiles 의 마지막 인덱스를 가져와서 안트로픽서비스 어펜트 next 버튼 메소드에 너허줘
     const lastDocContent = docContents[docContents.length - 1];
-    const lastDocFile = sortedDocFiles[sortedDocFiles.length - 1];
-    const appendedPrevHtml = await anthropicService.appendNextButton(
-      lastDocContent,
-      tipHtmlFileName,
-    );
 
-    // 이전 HTML 파일 업데이트
+    // Parallel processing: generate HTML story and append Next button concurrently.
+    const [htmlStory, appendedPrevHtml] = await Promise.all([
+      anthropicService.generateHtmlStory(folContents, docContents, sortedDocFiles),
+      anthropicService.appendNextButton(lastDocContent, tipHtmlFileName),
+    ]);
+
+    // 8. Update the previous HTML file with the appended Next button.
+    const lastDocFile = sortedDocFiles[sortedDocFiles.length - 1];
     const prevHtmlFilePath = `docs/${lastDocFile}`;
     const prevFileSha = await githubService.getFileSha(prevHtmlFilePath, branch);
     await githubService.createOrUpdateFile(
@@ -158,6 +155,8 @@ export async function POST(request: NextRequest) {
       prevFileSha || undefined,
     );
 
+    // Update (or create) the tip HTML file with the generated HTML story.
+    const htmlFilePath = `docs/${tipHtmlFileName}`;
     const existingFileSha = await githubService.getFileSha(htmlFilePath, branch);
     await githubService.createOrUpdateFile(
       htmlFilePath,
@@ -166,7 +165,7 @@ export async function POST(request: NextRequest) {
       existingFileSha || undefined,
     );
 
-    // 9. Includes chain information in the final response
+    // 9. Include chain information in the final response.
     const result = {
       message: "HTML files committed successfully.",
       htmlFile: htmlFilePath,
