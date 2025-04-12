@@ -247,7 +247,7 @@ export default function DagVisualizer({
   }, [nodes, links, selectedNode]);
 
   return (
-    <div className="flex-1 border-2 border-black h-[80vh] overflow-hidden">
+    <div className="flex-1 border-2 border-black h-[80vh] overflow-hidden p-2">
       <div>Dag Visualizer</div>
       <div id="dag-container">
         {loading && (
