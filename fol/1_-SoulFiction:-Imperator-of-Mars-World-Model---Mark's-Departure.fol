@@ -1,8 +1,8 @@
-hash: 4f0f5ef71dffe0a76433b0136d87d95fb098ae9bdf4e451ad022e1a7366175cb
-parent_hash: 94f457f76039d15a97703adfb672bba75fa86e6ac74f5a12679a96ecc4edfb96
+hash: d70f3fd2d671f3c9b62e27aabc73152af5d97a2f9cecfcc630aad3f79193d7ba
+parent_hash: 9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2
 signature: 0x15d1a0f174f3e352f5f5bdaa26eacac9fcd5bb6f9ba53910054e09b9160dddaa0e14a3d48433442ea891d04deb425b90e6786660bc75a944ce888eb4afe51d801c
 
-# First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model - Planting Potatoes
+# First-Order Logic (FOL) Definition for SoulFiction: Imperator of Mars World Model - Mark's Departure
 # Represents the static, foundational knowledge of the Mars environment.
 # Date: 2025-04-15
 
@@ -24,7 +24,8 @@ WaterIce
 CarbonDioxide
 Rock
 Soil
-Potatoes
+UserAlpha
+Mark
 
 # ==============================================================================
 # Predicates - Defining properties and relationships
@@ -43,14 +44,15 @@ IsRock(object)
 IsSoil(object)
 HasAtmosphere(planet)
 IsFrozen(substance)
-IsPlant(object)
-Plants(entity, plant, location)
+IsHuman(object)
+LeftMars(object)
 
 # --- Relationships & Locations ---
 LocatedOn(feature, planet)
 LocatedIn(entity, location)
 ExistsAt(substance, location)
 PrimaryAtmosphericComponent(planet, substance)
+Departs(object, location)
 
 # ==============================================================================
 # Facts - Specific knowledge about the Mars world (Updated with User Input)
@@ -69,7 +71,8 @@ IsPole(NorthPole)
 IsPole(SouthPole)
 IsSubstance(WaterIce)
 IsSubstance(CarbonDioxide)
-IsPlant(Potatoes)
+IsHuman(UserAlpha)
+IsHuman(Mark)
 
 # --- Property Assertions ---
 HasAtmosphere(Mars)
@@ -91,6 +94,7 @@ ExistsAt(WaterIce, NorthPole)
 ExistsAt(WaterIce, SouthPole)
 ExistsAt(CarbonDioxide, Mars)
 
-Plants(ImperatorOfMars, Potatoes, Mars)
+Departs(Mark, Mars)
+LeftMars(Mark)
 
 # --- End of FOL Definition ---
