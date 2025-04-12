@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
                 repo,
                 ref: `heads/${newBranch}`,
             });
-            // 이미 존재하는 경우는 그대로 진행(업데이트 또는 PR 재사용)
+            // 이미 존재하는 경우는 그대로 진행 (업데이트 또는 PR 재사용)
         } catch (error) {
             if ((error as { status: number }).status === 404) {
                 // 존재하지 않으면 새 브랜치 생성
@@ -62,10 +62,12 @@ export async function POST(request: NextRequest) {
         }
 
         // 6. 파일 생성/업데이트 작업
+        // 파일 경로 지정: "fol/" 디렉토리에 생성하도록 함.
+        const filePath = fileName.startsWith("fol/") ? fileName : `fol/${fileName}`;
+
         // 파일 내용을 Base64 인코딩
         const contentBase64 = Buffer.from(contents, "utf8").toString("base64");
-        // 커밋 메시지 작성
-        const commitMessage = `Add file ${fileName} via API`;
+        const commitMessage = `Add file ${filePath} via API`;
 
         // 파일이 존재하는지 확인 (존재하면 업데이트, 없으면 생성)
         let fileSha;
@@ -73,7 +75,7 @@ export async function POST(request: NextRequest) {
             const { data } = await octokit.repos.getContent({
                 owner,
                 repo,
-                path: fileName,
+                path: filePath,
                 ref: newBranch,
             });
             fileSha = Array.isArray(data) ? data[0].sha : data.sha;
@@ -86,7 +88,7 @@ export async function POST(request: NextRequest) {
         await octokit.repos.createOrUpdateFileContents({
             owner,
             repo,
-            path: fileName,
+            path: filePath,
             message: commitMessage,
             content: contentBase64,
             branch: newBranch,
@@ -97,10 +99,10 @@ export async function POST(request: NextRequest) {
         const { data: pullRequest } = await octokit.pulls.create({
             owner,
             repo,
-            title: `Auto PR: Add ${fileName}`,
+            title: `Auto PR: Add ${filePath}`,
             head: newBranch,
             base: "main",
-            body: `자동 생성된 PR입니다. 파일 \`${fileName}\`이 추가되었습니다.`,
+            body: `자동 생성된 PR입니다. 파일 \`${filePath}\`이 추가되었습니다.`,
         });
 
         return NextResponse.json({ pullRequest });
