@@ -21,24 +21,36 @@ jobs:
               with:
                   fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
 
-            - name: Identify changed .fol files
+            # 최신 커밋에서 fol 파일 변경이 있었는지 확인
+            - name: Check for fol changes in latest commit
+              id: check_fol_changes
+              run: |
+                  CHANGES=$(git diff --name-only HEAD~1 HEAD)
+                  echo "Changed files in last commit: $CHANGES"
+                  if echo "$CHANGES" | grep -q '^fol/'; then
+                    echo "fol_changes=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "fol_changes=false" >> $GITHUB_OUTPUT
+                  fi
+
+            - name: Exit workflow if no fol changes in latest commit
+              if: steps.check_fol_changes.outputs.fol_changes != 'true'
+              run: |
+                  echo "No new fol changes in latest commit. Exiting workflow."
+                  exit 0
+
+            # 이하 단계는 최신 커밋에서 fol 변경이 있을 때만 실행됨
+
+            - name: Identify changed .fol files (for validation)
               id: find_files
               run: |
                   echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
                   echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-                  # fol/ 바로 아래 파일과 하위 디렉토리 파일 모두 비교
                   CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  # 최신 방식: 환경 파일에 출력값 기록 (GITHUB_OUTPUT 파일)
                   echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-            - name: Exit if no .fol file changed
-              if: steps.find_files.outputs.files == ''
-              run: |
-                  echo "No .fol files changed. Exiting."
-                  exit 0
-
-            - name: Build JSON payload
+            - name: Build JSON payload for validation API
               id: build_payload
               run: |
                   FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
@@ -47,14 +59,11 @@ jobs:
                   for file in $FILES; do
                     if [ -f "$file" ]; then
                       CONTENT=$(jq -Rs . < "$file")
-                      echo "DEBUG: File [$file] exists."
                     else
-                      echo "DEBUG: File [$file] does not exist."
                       CONTENT="\"\""
                     fi
                     PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
                   done
-                  # 마지막 쉼표 제거 후 JSON 배열 닫기
                   PAYLOAD="${PAYLOAD%,}]}"
                   echo "$PAYLOAD" > payload.json
                   echo "----- Generated payload.json -----"
@@ -66,7 +75,7 @@ jobs:
               id: call_api
               run: |
                   STATUS=$(curl -s -o response.json -w "%{http_code}" \
-                    -X POST https://imperator-of-mars.ainetwork.xyz/api/validate-fol \
+                    -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/validate \
                     -H "Content-Type: application/json" \
                     -d @payload.json)
                   echo "status=$STATUS" >> $GITHUB_OUTPUT
@@ -108,3 +117,19 @@ jobs:
             - name: Fail workflow on validation error
               if: steps.call_api.outputs.status != '200'
               run: exit 1
+
+            - name: Send branch to Commit HTML API
+              run: |
+                  echo "Getting branch name..."
+                  BRANCH=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | awk -F'/' '{print $3}')}
+                  echo "Current branch: $BRANCH"
+                  JSON_PAYLOAD="{\"branch\": \"${BRANCH}\"}"
+                  echo "Payload for commit-html API:"
+                  echo "$JSON_PAYLOAD"
+                  curl -s -o commit_response.json -w "%{http_code}" \
+                    -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/commit-html \
+                    -H "Content-Type: application/json" \
+                    -d "$JSON_PAYLOAD"
+                  echo "----- Response from commit-html API -----"
+                  cat commit_response.json
+                  echo "------------------------------------------"

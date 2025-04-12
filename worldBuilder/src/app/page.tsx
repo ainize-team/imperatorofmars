@@ -43,6 +43,29 @@ export default function Home() {
     });
   };
 
+  const makeHintNode = (lastNodeCid: string, hintMsgs: string[]) => {
+    const hintNodes: any[] = [];
+    const hintLinks: any[] = [];
+    hintMsgs.forEach((msg) => {
+      const newNode = {
+        message: msg,
+        type: "hint",
+        children: [lastNodeCid]
+      }
+      const cid = generateCid(newNode)
+      hintNodes.push({
+        ...newNode,
+        cid,
+        id: cid,
+      });
+
+      hintLinks.push({source: cid, target: lastNodeCid, type: "dotted"});
+    });
+    return {
+      hintNodes, hintLinks,
+    }
+  }
+  
   const handleInput = async () => {
     if (!input.trim()) return;
 
@@ -50,6 +73,8 @@ export default function Home() {
     if (!signature) return;
 
     const cid = createNewNode(input, selectedNodes);
+    console.log('cid :>> ', cid);
+    setSelectedNodes([]);
 
     // TODO(jiyoung): move to FOL agent
     if (input.includes("KryptoPlanet")) {
@@ -77,14 +102,32 @@ export default function Home() {
       message: input,
       data: [],
       children: [] as any[],
-    };
+      type: "message",
+    }
     const cid = generateCid(newNode);
     selectedNodes.forEach((node: any) => {
       newNode.children.push(node.cid);
     });
-    setNodes((prevNodes: any) => [...prevNodes, { ...newNode, cid, id: cid }]);
+
+    const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
+
+    setNodes(
+      (prevNodes: any) => 
+        [
+          ...prevNodes.filter((node: any) => node.type === "message"), 
+          {...newNode, cid, id: cid}, 
+          ...hintNodes
+        ]
+    );
     selectedNodes.forEach((node: any) => {
-      setLinks((prevLinks: any) => [...prevLinks, { source: cid, target: node.id }]);
+      setLinks(
+        (prevLinks: any) => 
+          [
+            ...prevLinks.filter((link: any) => link.type !== "dotted"),
+            { source: cid, target: node.id },
+            ...hintLinks
+          ]
+      );
     });
     return cid;
   };
@@ -160,19 +203,24 @@ export default function Home() {
     return new File([blob], "image.png", { type: blob.type });
   };
 
+  const handleInputOnChild = (message: string) => {
+    setInput(message);
+  }
+
   return (
     <div className="flex flex-col h-full w-full gap-5">
       <Navbar />
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
-        <DagVisualizer
-          nodes={nodes}
-          links={links}
-          handleLinks={handleLinks}
-          handleNodes={handleNodes}
-          selectedNodes={selectedNodes}
+        <DagVisualizer 
+          nodes={nodes} 
+          links={links} 
+          handleLinks={handleLinks} 
+          handleNodes={handleNodes} 
+          selectedNodes={selectedNodes} 
           handleSelectedNodes={handleSelectedNodes}
+          handleInput={handleInputOnChild}
         />
         <FeedViewer />
       </div>
@@ -188,11 +236,11 @@ export default function Home() {
               e.preventDefault();
               handleInput();
             }
-          }}
-        ></input>
-        <button className="" onClick={handleInput}>
-          Generate
-        </button>
+          }}></input>
+        <button className="" onClick={(e) => {
+          e.preventDefault();
+          handleInput();
+        }}>Generate</button>
       </div>
     </div>
   );
