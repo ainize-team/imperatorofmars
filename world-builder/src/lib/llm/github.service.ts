@@ -187,4 +187,24 @@ export class GitHubService {
     }
     return Buffer.from(data.content, "base64").toString("utf8");
   }
+
+  /**
+   * Returns a list of PRs where the head branch starts with "node/".
+   * @param state The state of the PR ("open", "closed", "all")
+   * @returns Promise<PR[]> - An array of PRs with head branches matching the "node/**" pattern
+   */
+  async getNodePRs(
+    state: "open" | "closed" | "all" = "all",
+  ): Promise<RestEndpointMethodTypes["pulls"]["list"]["response"]["data"]> {
+    // per_page는 최대 100까지 지정 가능하며, 필요시 pagination을 고려해야 합니다.
+    const { data: pullRequests } = await this.octokit.pulls.list({
+      owner: this.owner,
+      repo: this.repo,
+      state,
+      per_page: 100,
+    });
+    // head 브랜치(ref)가 "node/"로 시작하는 PR만 필터링
+    const nodePRs = pullRequests.filter((pr) => pr.head.ref.startsWith("node/"));
+    return nodePRs;
+  }
 }
