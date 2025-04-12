@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useSignMessage, useWalletClient } from "wagmi";
 import CryptoJS from "crypto-js";
 import toast from "react-hot-toast";
+import { LicenseTerms, WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
 import Navbar from "@/components/sections/Navbar";
 import FeedViewer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
@@ -13,7 +14,7 @@ import { generateCid } from "@/utils/crypto";
 import NodeMetadataViewer from "@/components/nodeMetadataViewer";
 import { useStory } from "@/lib/context/AppContext";
 import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 import { getFileHash } from "@/lib/functions/file";
 import { mockHintNodes } from "@/moks/mockNodes";
 import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
@@ -39,12 +40,12 @@ export default function Home() {
 
   const handleSelectedNode = (d: any) => {
     setSelectedNode((prevSelectedNode: any) => {
-      console.log('d, prevSelectedNode :>> ', d, prevSelectedNode);
+      console.log("d, prevSelectedNode :>> ", d, prevSelectedNode);
       if (!d) return null;
       if (prevSelectedNode && prevSelectedNode.id === d.id) {
         return null;
       } else {
-        console.log('d :>> ', d);
+        console.log("d :>> ", d);
         return d;
       }
     });
@@ -131,38 +132,28 @@ export default function Home() {
     const cid = generateCid(newNode);
     const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
-    setNodes(
-      (prevNodes: any) => 
-        [
-          ...prevNodes.filter((node: any) => node.type === "message"), 
-          {...newNode, cid, id: cid}, 
-          ...hintNodes
-        ]
-    );
+    setNodes((prevNodes: any) => [
+      ...prevNodes.filter((node: any) => node.type === "message"),
+      { ...newNode, cid, id: cid },
+      ...hintNodes,
+    ]);
 
     if (selectedNode) {
-      console.log('selectedNode in createnewnode :>> ', selectedNode);
+      console.log("selectedNode in createnewnode :>> ", selectedNode);
       newNode.children.push(selectedNode.cid);
-      setLinks(
-        (prevLinks: any) => 
-          [
-            ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            { source: cid, target: selectedNode.id },
-            ...hintLinks
-          ]
-      );
+      setLinks((prevLinks: any) => [
+        ...prevLinks.filter((link: any) => link.type !== "dotted"),
+        { source: cid, target: selectedNode.id },
+        ...hintLinks,
+      ]);
     } else {
-      setLinks(
-        (prevLinks: any) => 
-          [
-            ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            ...hintLinks
-          ]
-      );
+      setLinks((prevLinks: any) => [
+        ...prevLinks.filter((link: any) => link.type !== "dotted"),
+        ...hintLinks,
+      ]);
     }
 
-    
-    return {...newNode, cid, id: cid};
+    return { ...newNode, cid, id: cid };
   };
 
   const mintAndRegisterNFT = async () => {
@@ -234,10 +225,31 @@ export default function Home() {
       { id: tid2 }
     );
 
-    // mint and register IPA
+    // mint and register IPA (use commercial remix)
+    const commercialRemixTerms: LicenseTerms = {
+      transferable: true,
+      royaltyPolicy: "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E", // RoyaltyPolicyLAP address from https://docs.story.foundation/docs/deployed-smart-contracts
+      defaultMintingFee: BigInt(10),
+      expiration: BigInt(0),
+      commercialUse: true,
+      commercialAttribution: true, // must give us attribution
+      commercializerChecker: zeroAddress,
+      commercializerCheckerData: zeroAddress,
+      commercialRevShare: 5, // can claim 50% of derivative revenue
+      commercialRevCeiling: BigInt(0),
+      derivativesAllowed: true,
+      derivativesAttribution: true,
+      derivativesApproval: false,
+      derivativesReciprocal: true,
+      derivativeRevCeiling: BigInt(0),
+      currency: WIP_TOKEN_ADDRESS,
+      uri: "",
+    };
+
     const tid3 = toast.loading("Minting and registering an IP Asset...");
-    const response = await client.ipAsset.mintAndRegisterIp({
+    const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
       spgNftContract: SPG_NFT_CONTRACT_ADDRESS,
+      licenseTermsData: [{ terms: commercialRemixTerms }],
       ipMetadata: {
         ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsCid}`,
         ipMetadataHash: `0x${ipMetadataHash}`,
