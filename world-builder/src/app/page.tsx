@@ -99,7 +99,7 @@ export default function Home() {
     const newNode = createNewNode(input);
     setSelectedNode(newNode);
 
-    if (input.includes("KryptoPlanet")) {
+    if (input.includes("water")) {
       setShowDialog(true);
       return;
     }
