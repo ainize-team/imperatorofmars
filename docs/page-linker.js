@@ -1,7 +1,7 @@
 // page-linker.js - 개선된 버전
 (function() {
     // 상대 경로로 sitemap.json을 참조 (더 안정적)
-    const sitemapUrl = 'sitemap.json';
+    const sitemapUrl = '/sitemap.json';
     
     /**
      * Load the sitemap data and process the page
