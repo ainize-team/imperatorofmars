@@ -4,14 +4,14 @@
 
 ## 프로세스 흐름
 
-![FOL 제출](images/user_commit.png)
+<img src="images/user_commit.png" alt="FOL 제출" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 1. **FOL 생성 및 제출**
 
    - 사용자가 WorldBuilder를 통해 자신만의 FOL을 생성합니다
    - 생성된 FOL을 제출합니다
 
-![GitHub Actions 검증](images/validate-fol-action.png)
+<img src="images/validate-fol-action.png" alt="GitHub Actions 검증" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 2. **GitHub Actions 검증**
 
@@ -21,21 +21,21 @@
   - FOL 파일의 의미론적 검증
   - 검증 결과를 PR에 코멘트로 추가
 
-![이야기 생성](images/generate-html.png)
+<img src="images/generate-html.png" alt="이야기 생성" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 3. **새로운 이야기 생성**
 
 - FOL 검증에 통과하면 해당 FOL을 기반으로 새로운 이야기가 자동 생성됩니다
 - 생성된 이야기는 HTML 형식으로 변환됩니다
 
-![PR 머지](images/merge-commit.png)
+<img src="images/merge-commit.png" alt="PR 머지" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 4. **구성원 합의 및 머지**
 
    - 새로운 이야기에 대해 구성원들이 검토하고 합의에 도달합니다
    - 합의가 이루어지면 main 브랜치에 머지됩니다
 
-![HTML 배포](images/next-story-html.png)
+<img src="images/next-story-html.png" alt="HTML 배포" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
 5. **자동 배포**
    - 머지된 이야기는 `https://imperatorofmars.ai/{**.html}`에 자동으로 배포됩니다
