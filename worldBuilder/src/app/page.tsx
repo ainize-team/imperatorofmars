@@ -14,7 +14,7 @@ export default function Home() {
   const [input, setInput] = useState<string>("");
   const [nodes, setNodes] = useState<any>([]);
   const [links, setLinks] = useState<any>([]);
-  const [selectedNodes, setSelectedNodes] = useState<any>([]); // Change to array
+  const [selectedNode, setSelectedNode] = useState<any>();
   const { signMessageAsync } = useSignMessage();
 
   const handleNodes = (newNode: any) => {
@@ -25,12 +25,15 @@ export default function Home() {
     setLinks((prevLinks: any) => [...prevLinks, newLink]);
   };
 
-  const handleSelectedNodes = (d: any) => {
-    setSelectedNodes((prevSelectedNodes: any) => {
-      if (prevSelectedNodes.some((node: any) => node.id === d.id)) {
-        return prevSelectedNodes.filter((node: any) => node.id !== d.id);
+  const handleSelectedNode = (d: any) => {
+    setSelectedNode((prevSelectedNode: any) => {
+      console.log('d, prevSelectedNode :>> ', d, prevSelectedNode);
+      if (!d) return null;
+      if (prevSelectedNode && prevSelectedNode.id === d.id) {
+        return null;
       } else {
-        return [...prevSelectedNodes, d];
+        console.log('d :>> ', d);
+        return d;
       }
     });
   };
@@ -64,9 +67,9 @@ export default function Home() {
     const signature = await signMessage();
     if (!signature) return;
 
-    const cid = createNewNode(input, selectedNodes);
+    const cid = createNewNode(input);
     console.log('cid :>> ', cid);
-    setSelectedNodes([]);
+    setSelectedNode(cid);
 
     await mintAndRegisterNFT();
 
@@ -86,7 +89,7 @@ export default function Home() {
     }
   };
 
-  const createNewNode = (input: string, selectedNodes: any[]) => {
+  const createNewNode = (input: string) => {
     const newNode = {
       message: input,
       data: [],
@@ -94,10 +97,9 @@ export default function Home() {
       type: "message",
     }
     const cid = generateCid(newNode);
-    selectedNodes.forEach((node: any) => {
-      newNode.children.push(node.cid);
-    });
-
+    if (selectedNode) {
+      newNode.children.push(selectedNode.cid);
+    }
     const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
 
     setNodes(
@@ -108,16 +110,14 @@ export default function Home() {
           ...hintNodes
         ]
     );
-    selectedNodes.forEach((node: any) => {
-      setLinks(
-        (prevLinks: any) => 
-          [
-            ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            { source: cid, target: node.id },
-            ...hintLinks
-          ]
-      );
-    });
+    setLinks(
+      (prevLinks: any) => 
+        [
+          ...prevLinks.filter((link: any) => link.type !== "dotted"),
+          { source: cid, target: selectedNode.id },
+          ...hintLinks
+        ]
+    );
     return cid;
   };
 
@@ -170,8 +170,8 @@ export default function Home() {
           links={links} 
           handleLinks={handleLinks} 
           handleNodes={handleNodes} 
-          selectedNodes={selectedNodes} 
-          handleSelectedNodes={handleSelectedNodes}
+          selectedNode={selectedNode} 
+          handleSelectedNode={handleSelectedNode}
           handleInput={handleInputOnChild}
         />
         <FeedVeiwer />

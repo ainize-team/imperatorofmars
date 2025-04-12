@@ -13,8 +13,8 @@ type props = {
   handleNodes: Function,
   links: any[],
   handleLinks: Function,
-  selectedNodes: any[],
-  handleSelectedNodes: Function,
+  selectedNode: any,
+  handleSelectedNode: Function,
   handleInput: Function,
 }
 
@@ -23,8 +23,8 @@ export default function DagVisualizer({
   handleNodes, 
   links,
   handleLinks, 
-  selectedNodes, 
-  handleSelectedNodes,
+  selectedNode, 
+  handleSelectedNode,
   handleInput,
 }: props) {
   const [loading, setLoading] = useState(false);
@@ -182,7 +182,7 @@ export default function DagVisualizer({
         if (d.type === "hint") {
           handleInput(d.message || "");
         } else {
-          handleSelectedNodes(d);
+          handleSelectedNode(d);
         }
         event.stopPropagation();
       });
@@ -191,8 +191,8 @@ export default function DagVisualizer({
     node.append("circle")
       .attr("r", 20)
       .attr("fill", (d: any) => d.type === 'message' ? "#66ccff" : "#ff9966")
-      .attr("stroke", (d: any) => selectedNodes.some((node: any) => node.id === d.id) ? "#ff0000" : "#fff")
-      .attr("stroke-width", (d: any) => selectedNodes.some((node: any) => node.id === d.id) ? 2 : 1);
+      .attr("stroke", (d: any) => selectedNode && selectedNode.id === d.id ? "#ff0000" : "#fff")
+      .attr("stroke-width", (d: any) => selectedNode && selectedNode.id === d.id ? 2 : 1);
     
     // Node labels
     node.append("text")
@@ -234,13 +234,13 @@ export default function DagVisualizer({
     
     // Clear selected nodes on canvas click
     svg.on("click", () => {
-      handleSelectedNodes([]);
+      handleSelectedNode(null);
     });
     
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, selectedNodes]);
+  }, [nodes, links, selectedNode]);
 
   return (
     <div className="flex-1 border-2 border-black h-[80vh] overflow-hidden">
