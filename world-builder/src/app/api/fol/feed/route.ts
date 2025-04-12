@@ -5,7 +5,7 @@ export async function GET() {
   const githubService = new GitHubService();
   const nodePRs = await githubService.getNodePRs();
 
-  // 각 PR에서 필요한 핵심 정보만 추출합니다.
+  // Extract only the necessary core information from each PR.
   const filteredPRs = nodePRs.map((pr) => ({
     number: pr.number,
     state: pr.state,
