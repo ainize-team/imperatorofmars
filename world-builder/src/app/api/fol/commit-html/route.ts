@@ -128,7 +128,31 @@ export async function POST(request: NextRequest) {
     const folContents = chain.map((file) => file.content);
     console.log("folContents", folContents);
     console.log("htmlContents", docContents);
-    const htmlStory = await anthropicService.generateHtmlStory(folContents, docContents);
+    
+    const pairedFolHtmlContents = folContents
+      .map(
+        (folContent, index) => `
+    FOL file ${index + 1}:
+    ${folContent}
+
+    HTML conversion ${index + 1}:
+    ${htmlContents[index]}
+    `,
+      )
+      .join("\n");
+    try {
+      const response = await fetch('/api/gen-html', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pairedFolHtmlContents: pairedFolHtmlContents }),
+      });
+
+      const result = await response.json();
+      const htmlStory = result.htmlStory;
+    } catch (error) {
+      console.error("Error fetching HTML data:", error);
+      const htmlStory = "";
+    }
 
     // 8. docs 폴더 내 보고서 파일 생성: tip 파일과 동일한 이름(확장자만 .html)
     const tipHtmlFileName =
