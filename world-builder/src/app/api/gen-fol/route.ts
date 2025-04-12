@@ -28,11 +28,9 @@ export async function POST(req: NextRequest) {
   });
 
   const threadResult = await threadResponse.text();
-  console.log("Thread Result:", threadResult);
 
   // Extract the thread_id from the response
   const threadId = threadResult.replace(/["%]/g, '').trim();
-  console.log("Thread ID:", threadId);
 
   // Send a request to the NEAR API to get the messages in the thread
   const messageResponse = await fetch(`https://api.near.ai/v1/threads/${threadId}/messages`, {
@@ -54,8 +52,11 @@ export async function POST(req: NextRequest) {
       .join(' ');
   }
 
-  console.log("Extracted Message:", extractedMessage);
-  return NextResponse.json({ threadId, message: extractedMessage });
-  // return NextResponse.json({ threadId, message: constantFOL });
+  // assign the remaining message after 40th index of the first line of extractedMessage
+  const firstLine = extractedMessage.split('\n')[0];
+  const title = firstLine.slice(40);
+
+  // console.log("Extracted Message:", extractedMessage);
+  return NextResponse.json({ fol: extractedMessage, title: title });
 }
 

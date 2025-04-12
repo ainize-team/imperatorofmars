@@ -81,15 +81,19 @@ export default function Home() {
     const signature = await signMessage();
     if (!signature) return;
 
-    const FOL = await getFOL(input);
-    if (!FOL) return;
+    // resTxt2Fol: { fol: string, title: string }
+    const resTxt2Fol = await getFOL(input);
+    if (!resTxt2Fol) return;
+    const FOL = resTxt2Fol.fol;
+    const folTitle = resTxt2Fol.title;
+
 
     // FIXME(yoojin): change title from getFOL
     await createPullRequest({
       signature,
       parentHash: selectedNode? selectedNode.cid : "0x1234",
       FOL,
-      title: input
+      title: folTitle,
     });
 
     const newNode = createNewNode(input);
