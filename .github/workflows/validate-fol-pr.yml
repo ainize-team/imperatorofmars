@@ -6,23 +6,23 @@ on:
     branches: [main]
     paths:
       - "fol/**/*.fol"
-      - "fol/*.fol" # fol/ 바로 아래 파일도 포함
+      - "fol/*.fol" # fol/ directly below files are also included
 
 jobs:
   validate-fol:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      checks: write # Check Run 결과 기록용 권한
+      checks: write # Permission for recording Check Run results
       pull-requests: read
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
+          fetch-depth: 0 # Fetch the entire history to make both base and head commit available
 
-      # 최신 커밋에서 fol 파일 변경이 있었는지 확인
+      # Check if there were any changes to fol files in the latest commit
       - name: Check for fol changes in latest commit
         id: check_fol_changes
         run: |
@@ -40,7 +40,7 @@ jobs:
           echo "No new fol changes in latest commit. Exiting workflow."
           exit 0
 
-      # 이하 단계는 최신 커밋에서 fol 변경이 있을 때만 실행됨
+      # The following steps are only executed if there were changes to fol files in the latest commit
 
       - name: Identify changed .fol files (for validation)
         id: find_files
@@ -54,12 +54,12 @@ jobs:
       - name: Build JSON payload for validation API
         id: build_payload
         run: |
-          # FILES 출력값을 null 구분자로 변환하여 xargs -0로 처리
+          # Convert the output of FILES to null-separated and process with xargs -0
           FILES=$(printf '%s\0' "${{ steps.find_files.outputs.files }}" | xargs -0 echo)
           echo "DEBUG: Files = [$FILES]"
           PAYLOAD="{\"files\":["
           for file in $FILES; do
-            # 파일 이름을 안전하게 JSON 문자열로 이스케이프 처리
+            # Safely escape the file name as a JSON string
             ESCAPED_FILE=$(printf '%s' "$file" | jq -Rs .)
             if [ -f "$file" ]; then
               CONTENT=$(jq -Rs < "$file")
@@ -68,7 +68,7 @@ jobs:
             fi
             PAYLOAD="${PAYLOAD}{\"path\":${ESCAPED_FILE},\"content\":${CONTENT}},"
           done
-          # 마지막 쉼표 제거 후 JSON 배열 닫기
+          # Remove the last comma and close the JSON array
           PAYLOAD="${PAYLOAD%,}]}"
           echo "$PAYLOAD" > payload.json
           echo "----- Generated payload.json -----"
@@ -100,8 +100,8 @@ jobs:
           conclusion: success
           output: |
             {
-              "title": "✅ .fol 정합성 검사 통과",
-              "summary": "모든 .fol 파일이 검사를 통과했습니다.",
+              "title": "✅ .fol consistency check passed",
+              "summary": "All .fol files passed the check.",
               "text": ${{ toJson(steps.find_files.outputs.files) }}
             }
 
@@ -114,8 +114,8 @@ jobs:
           conclusion: failure
           output: |
             {
-              "title": "❌ .fol 정합성 검사 실패",
-              "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
+              "title": "❌ .fol consistency check failed",
+              "summary": "Webhook response status: ${{ steps.call_api.outputs.status }}",
               "text": ${{ toJson(steps.call_api.outputs.body) }}
             }
 

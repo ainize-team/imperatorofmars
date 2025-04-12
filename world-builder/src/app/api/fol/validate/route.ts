@@ -5,20 +5,20 @@ interface FolFile {
   content: string;
 }
 
-// 예시 LLM 기반 정합성 검사 로직 (실제로는 외부 API 연동)
+// Example LLM-based consistency check logic (actual implementation would involve external API integration)
 function validateFolContent(content: string): { valid: boolean; reason?: string } {
-  // 아주 단순한 검사 예: 금지된 키워드가 있으면 실패
+  // Very simple check example: if a forbidden keyword is present, it fails
   if (content.includes("undefinedPredicate")) {
     return {
       valid: false,
-      reason: "❌ 'undefinedPredicate'는 정의되지 않은 술어입니다.",
+      reason: "❌ 'undefinedPredicate' is an undefined predicate.",
     };
   }
 
   // if (!content.includes("IsPlanet")) {
   //     return {
   //         valid: false,
-  //         reason: "❌ 최소한 하나의 'IsPlanet' 정의가 필요합니다.",
+  //         reason: "❌ At least one 'IsPlanet' definition is required.",
   //     };
   // }
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const files: FolFile[] = body.files;
 
     if (!files || !Array.isArray(files)) {
-      return NextResponse.json({ error: "files 배열이 필요합니다." }, { status: 400 });
+      return NextResponse.json({ error: "files array is required." }, { status: 400 });
     }
 
     const results = files.map(({ path, content }) => {
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       return {
         path,
         valid: result.valid,
-        reason: result.reason || "✅ 정합성 OK",
+        reason: result.reason || "✅ Consistency OK",
       };
     });
 
@@ -55,11 +55,11 @@ export async function POST(req: NextRequest) {
       },
     );
   } catch (error: unknown) {
-    console.error("Webhook 처리 오류:", error);
+    console.error("Webhook processing error:", error);
     return NextResponse.json(
       {
-        error: "서버 오류 발생",
-        detail: error instanceof Error ? error.message : "알 수 없는 오류",
+        error: "Server error occurred",
+        detail: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 },
     );

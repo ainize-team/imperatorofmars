@@ -11,7 +11,7 @@ export class GitHubService {
     const repo = process.env.GITHUB_REPO;
 
     if (!githubToken || !owner || !repo) {
-      throw new Error("GitHub 인증 정보 또는 저장소 정보가 설정되지 않았습니다.");
+      throw new Error("GitHub authentication information or repository information is not set.");
     }
 
     this.octokit = new Octokit({ auth: githubToken });
@@ -104,7 +104,7 @@ export class GitHubService {
     });
   }
 
-  // 지정된 폴더(예: "fol") 내의 모든 .fol 파일을 재귀적으로 읽어 [{ path, content }] 배열을 반환합니다.
+  // Reads all .fol files recursively within a specified folder (e.g., "fol") and returns an array of [{ path, content }].
   async getFolderFiles(
     folderPath: string,
     branch: string,
@@ -152,23 +152,23 @@ export class GitHubService {
   }
 
   /**
-   * 지정된 branch의 최신 커밋에서 변경된 파일 경로 목록을 반환합니다.
-   * @param branch - 대상 브랜치 이름
-   * @returns Promise<string[]> - 최신 커밋에서 변경된 파일 경로의 배열
+   * Returns the list of file paths changed in the latest commit of a specified branch.
+   * @param branch - The target branch name
+   * @returns Promise<string[]> - An array of file paths changed in the latest commit
    */
   async getLatestCommitChangedFiles(branch: string): Promise<string[]> {
-    // branch의 최신 커밋 정보를 가져옵니다.
+    // Fetches the latest commit information of the branch.
     const { data: commit } = await this.octokit.repos.getCommit({
       owner: this.owner,
       repo: this.repo,
       ref: branch,
     });
-    // commit.files 필드에는 해당 커밋에서 변경된 파일 정보가 포함됩니다.
+    // The commit.files field contains information about the files changed in the commit.
     if (!commit.files) {
       return [];
     }
 
-    // 각 파일의 filename 속성을 추출하여 배열로 반환
+    // Extracts the filename property of each file and returns as an array.
     return commit.files.map((file) => file.filename);
   }
 
@@ -187,7 +187,6 @@ export class GitHubService {
     }
     return Buffer.from(data.content, "base64").toString("utf8");
   }
-
   /**
    * Returns a list of PRs where the head branch starts with "node/".
    * @param state The state of the PR ("open", "closed", "all")
@@ -196,14 +195,14 @@ export class GitHubService {
   async getNodePRs(
     state: "open" | "closed" | "all" = "all",
   ): Promise<RestEndpointMethodTypes["pulls"]["list"]["response"]["data"]> {
-    // per_page는 최대 100까지 지정 가능하며, 필요시 pagination을 고려해야 합니다.
+    // per_page can be set up to 100, and pagination should be considered if necessary.
     const { data: pullRequests } = await this.octokit.pulls.list({
       owner: this.owner,
       repo: this.repo,
       state,
       per_page: 100,
     });
-    // head 브랜치(ref)가 "node/"로 시작하는 PR만 필터링
+    // Filter only PRs where the head branch (ref) starts with "node/".
     const nodePRs = pullRequests.filter((pr) => pr.head.ref.startsWith("node/"));
     return nodePRs;
   }
