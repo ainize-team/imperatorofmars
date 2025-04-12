@@ -33,7 +33,7 @@ export default function DagVisualizer({
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
   useEffect(() => {
-    const cid = "9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2";
+    const cid = "84f457f76039d15a97703adfb672bba75fa86e6ac74f5a12679a96ecc4edfb96";
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
@@ -77,7 +77,7 @@ export default function DagVisualizer({
                 id: nodeResult.cid,
                 cid: nodeResult.cid,
                 message: nodeResult.message || `Child of ${nodeResult.cid.substring(0, 6)}`,
-                type: 'message',
+                type: nodeResult.type,
                 children: nodeResult.children || [],
                 data: nodeResult.data
               };
