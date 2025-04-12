@@ -15,15 +15,16 @@ export default function NodeMetadataViewer({ node }: props) {
     return `
       ID: ${node.id}
       Message: ${node.message}
-      Data: ${node.data ? node.data.toString() : ""}
       Children: ${node.children.toString()}
     `;
+    //   Data: ${node.data ? node.data.toString() : ""}
+      
   }
 
   return (
     <div className="flex-1 border-2 border-black overflow-hidden p-2">
       <div>Node Details</div>
-      <div className="overflow-scroll h-full">
+      <div className="overflow-scroll h-full text-[.8rem] truncate">
         <ReactMarkdown rehypePlugins={[rehypeHighlight]}>
           {showNodeDetail()}
         </ReactMarkdown>
