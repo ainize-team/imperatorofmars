@@ -13,7 +13,11 @@ import DagVisualizer from "@/components/dagVisualizer";
 import { generateCid } from "@/utils/crypto";
 import NodeMetadataViewer from "@/components/nodeMetadataViewer";
 import { useStory } from "@/lib/context/AppContext";
-import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
+import {
+  commercialRemixTerms,
+  DEFAULT_NFT_METADATA,
+  SPG_NFT_CONTRACT_ADDRESS,
+} from "@/lib/constants";
 import { Address, zeroAddress } from "viem";
 import { getFileHash } from "@/lib/functions/file";
 import { mockHintNodes } from "@/moks/mockNodes";
@@ -25,6 +29,7 @@ export default function Home() {
   const [links, setLinks] = useState<any>([]);
   const [selectedNode, setSelectedNode] = useState<any>();
   const [showDialog, setShowDialog] = useState(false);
+  const [useMcp, setUseMcp] = useState(false);
 
   const { data: wallet } = useWalletClient();
   const { signMessageAsync } = useSignMessage();
@@ -86,11 +91,10 @@ export default function Home() {
     const FOL = resTxt2Fol.fol;
     const folTitle = resTxt2Fol.title;
 
-
     // FIXME(yoojin): change title from getFOL
     const newCid = await createPullRequest({
       signature,
-      parentHash: selectedNode? selectedNode.cid : "0x1234",
+      parentHash: selectedNode ? selectedNode.cid : "0x1234",
       FOL,
       title: folTitle,
     });
@@ -98,7 +102,8 @@ export default function Home() {
     const newNode = createNewNode(input, newCid);
     setSelectedNode(newNode);
 
-    if (input.includes("Water")) {
+    // FIXME(jiyoung): this should trigger when a new FOL is found
+    if (input.toLowerCase().includes("water")) {
       setShowDialog(true);
       return;
     }
@@ -120,12 +125,12 @@ export default function Home() {
   };
 
   const getFOL = async (input: string) => {
-    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input
     console.log("FRONT-END input :>> ", input);
     try {
-      const response = await fetch('/api/gen-fol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/gen-fol", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
 
@@ -136,7 +141,7 @@ export default function Home() {
       toast.error("Failed to fetch FOL data.");
       return;
     }
-  }
+  };
 
   const createNewNode = (input: string, cid?: string) => {
     cid = cid ? cid : generateCid(input);
@@ -165,13 +170,10 @@ export default function Home() {
         ...hintLinks,
       ]);
     } else {
-      setLinks(
-        (prevLinks: any) => 
-          [
-            ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            ...hintLinks,
-          ]
-      );
+      setLinks((prevLinks: any) => [
+        ...prevLinks.filter((link: any) => link.type !== "dotted"),
+        ...hintLinks,
+      ]);
     }
 
     return { ...newNode, cid, id: cid };
@@ -183,16 +185,16 @@ export default function Home() {
     title,
     parentHash,
   }: {
-    signature: string,
-    FOL: string,
-    title: string
-    parentHash?: string,
+    signature: string;
+    FOL: string;
+    title: string;
+    parentHash?: string;
   }) => {
     try {
       const res = await fetch("/api/fol/pull-request", {
         method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           signature,
           contents: FOL,
           title,
@@ -206,48 +208,98 @@ export default function Home() {
       console.error("Error create PR:", error);
       toast.error("Failed to create Pull Request.");
     }
-  }
+  };
 
-  const mintAndRegisterNFT = async () => {
+  const fileFromUrl = async (url: string): Promise<File> => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return new File([blob], "image.png", { type: blob.type });
+  };
+
+  const handleInputOnChild = (message: string) => {
+    setInput(message);
+  };
+
+  const handleConfirmMint = async ({
+    imageUrl,
+    name,
+    description,
+  }: {
+    imageUrl: string;
+    name: string;
+    description: string;
+  }) => {
+    setShowDialog(false);
+    if (useMcp) {
+      // await mintNftWithMCP();
+    } else {
+      await mintNFTWithSDK(imageUrl, name, description);
+    }
+  };
+
+  const mintNFTWithSDK = async (imageUrl: string, name: string, description: string) => {
     if (!client) return;
 
-    // upload image to IPFS
-    const tid1 = toast.loading("Uploading image to IPFS...");
-    const image = await fileFromUrl("/asset/kryptoplanet.png");
+    const image = await fileFromUrl(imageUrl);
+    const imageIpfsHash = await uploadImageToIPFS(image);
+    const imageIpfsUrl = `https://ipfs.io/ipfs/${imageIpfsHash}`;
+
+    const nftData = {
+      name,
+      description,
+      image: imageIpfsUrl,
+    };
+    const nftIpfsCid = await uploadJsonToIPFS(nftData);
+    const nftMetadataHash = hashJson(nftData);
+
+    const ipMetadata = await generateIPMetadata(name, description, image, imageUrl);
+    const ipIpfsCid = await uploadJsonToIPFS(ipMetadata);
+    const ipMetadataHash = hashJson(ipMetadata);
+
+    await mintAndRegister(ipIpfsCid, ipMetadataHash, nftIpfsCid, nftMetadataHash);
+  };
+
+  const uploadImageToIPFS = async (image: Blob | File): Promise<string> => {
+    const toastId = toast.loading("Uploading image to IPFS...");
     const formData = new FormData();
     formData.append("file", image);
-    const imageUploadRes = await fetch("/api/ipfs/image", {
-      method: "POST",
-      body: formData,
-    });
-    const { ipfsHash: imageIpfsHash } = await imageUploadRes.json();
-    toast.success(`IPFS upload completed. URI: ${imageIpfsHash}`, { id: tid1 });
+    const res = await fetch("/api/ipfs/image", { method: "POST", body: formData });
+    const { ipfsHash } = await res.json();
+    toast.success(`IPFS upload completed: ${ipfsHash}`, { id: toastId });
+    return ipfsHash;
+  };
 
-    // create and upload NFT metadata
-    const nftData = {
-      name: defaultMetadata.name,
-      description: defaultMetadata.description,
-      image: `https://ipfs.io/ipfs/${imageIpfsHash}`,
-    };
-    const nftMetadataUploadRes = await fetch("/api/ipfs/json", {
+  const uploadJsonToIPFS = async (data: any): Promise<string> => {
+    const res = await fetch("/api/ipfs/json", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(nftData),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
     });
-    const { ipfsHash: nftIpfsCid } = await nftMetadataUploadRes.json();
-    const nftMetadataHash = CryptoJS.SHA256(JSON.stringify(nftData)).toString(CryptoJS.enc.Hex);
 
-    // create and upload IP data
-    const tid2 = toast.loading("Creating IP metadata...");
-    const ipData = client.ipAsset.generateIpMetadata({
-      title: defaultMetadata.name,
-      description: defaultMetadata.description,
-      image: `https://ipfs.io/ipfs/${imageIpfsHash}`,
-      imageHash: await getFileHash(image as File),
-      mediaUrl: `https://ipfs.io/ipfs/${imageIpfsHash}`,
-      mediaHash: await getFileHash(image as File),
+    const { ipfsHash } = await res.json();
+    return ipfsHash;
+  };
+
+  const hashJson = (data: any): string => {
+    return CryptoJS.SHA256(JSON.stringify(data)).toString(CryptoJS.enc.Hex);
+  };
+
+  const generateIPMetadata = async (
+    name: string,
+    description: string,
+    image: File,
+    imageUrl: string
+  ): Promise<any> => {
+    const toastId = toast.loading("Creating IP metadata...");
+
+    const hash = await getFileHash(image);
+    const metadata = client!.ipAsset.generateIpMetadata({
+      title: name,
+      description: description,
+      image: imageUrl,
+      imageHash: hash,
+      mediaUrl: imageUrl,
+      mediaHash: hash,
       mediaType: "image/png",
       creators: [
         {
@@ -258,48 +310,19 @@ export default function Home() {
       ],
     });
 
-    const ipMetadataUploadRes = await fetch("/api/ipfs/json", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(nftData),
-    });
-    const { ipfsHash: ipIpfsCid } = await ipMetadataUploadRes.json();
+    toast.success(`IP metadata created`, { id: toastId });
+    return metadata;
+  };
 
-    const ipMetadataHash = CryptoJS.SHA256(JSON.stringify(ipData)).toString(CryptoJS.enc.Hex);
-    toast.success(
-      `IP metadata created: ${JSON.stringify({
-        name: ipData.title,
-        description: ipData.description,
-        image: ipData.image,
-      })} `,
-      { id: tid2 }
-    );
+  const mintAndRegister = async (
+    ipIpfsCid: string,
+    ipMetadataHash: string,
+    nftIpfsCid: string,
+    nftMetadataHash: string
+  ) => {
+    const toastId = toast.loading("Minting and registering an IP Asset...");
 
-    // mint and register IPA (use commercial remix)
-    const commercialRemixTerms: LicenseTerms = {
-      transferable: true,
-      royaltyPolicy: "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E", // RoyaltyPolicyLAP address from https://docs.story.foundation/docs/deployed-smart-contracts
-      defaultMintingFee: BigInt(10),
-      expiration: BigInt(0),
-      commercialUse: true,
-      commercialAttribution: true, // must give us attribution
-      commercializerChecker: zeroAddress,
-      commercializerCheckerData: zeroAddress,
-      commercialRevShare: 5, // can claim 50% of derivative revenue
-      commercialRevCeiling: BigInt(0),
-      derivativesAllowed: true,
-      derivativesAttribution: true,
-      derivativesApproval: false,
-      derivativesReciprocal: true,
-      derivativeRevCeiling: BigInt(0),
-      currency: WIP_TOKEN_ADDRESS,
-      uri: "",
-    };
-
-    const tid3 = toast.loading("Minting and registering an IP Asset...");
-    const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
+    const response = await client!.ipAsset.mintAndRegisterIpAssetWithPilTerms({
       spgNftContract: SPG_NFT_CONTRACT_ADDRESS,
       licenseTermsData: [{ terms: commercialRemixTerms }],
       ipMetadata: {
@@ -310,24 +333,15 @@ export default function Home() {
       },
       txOptions: { waitForTransaction: true },
     });
+
     console.log(`IPA created at tx hash ${response.txHash}, IPA ID: ${response.ipId}`);
-    toast.success(`IPA "${defaultMetadata.name}" registered!`, { id: tid3 });
+    toast.success(`IPA "${DEFAULT_NFT_METADATA.name}" registered! Tx Hash: ${response.txHash}`, {
+      id: toastId,
+    });
   };
 
-  const fileFromUrl = async (url: string): Promise<File> => {
-    const res = await fetch(url, { mode: "no-cors" });
-    const blob = await res.blob();
-    return new File([blob], "image.png", { type: blob.type });
-  };
-
-  const handleInputOnChild = (message: string) => {
-    setInput(message);
-  };
-
-  const handleConfirmMint = async () => {
-    setShowDialog(false);
-    console.log("🎉 Minting logic for KryptoPlanet triggered!");
-    await mintAndRegisterNFT();
+  // FIXME(jiyoung): not working in mint_and_register_ip_with_terms() tool
+  const mintNFTWithMCP = async () => {
   };
 
   const handleCancelMint = () => {
@@ -381,7 +395,6 @@ export default function Home() {
           open={showDialog}
           onConfirm={handleConfirmMint}
           onCancel={handleCancelMint}
-          name="KryptoPlanet"
         />
       </div>
     </div>
