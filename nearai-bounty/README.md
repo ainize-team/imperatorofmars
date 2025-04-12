@@ -8,11 +8,13 @@
 <p align="center">
   <img src="./src/nearai_agent_text2fol.png" alt="Agent Text2FOL">
 </p>
+The Text2FOL agent bridges the gap between creative storytelling and precise logical representation. It takes natural language descriptions of new story events, settings, or character actions and automatically translates them into mathematically precise First-Order Logic (FOL). 
 
 ## 🙋‍♀️ Agent ["FOL2HTML"](https://app.near.ai/agents/kyungmoonleecomcom.near/FOL2HTML/latest)
 <p align="center">
   <img src="./src/nearai_agent_fol2html.png" alt="Agent FOL2HTML">
 </p>
+The FOL2HTML Agent automatically transforms structured FOL statements into creative, visually appealing HTML stories, ensuring logical coherence and readability.
 
 # Req2: "Code must be in a public repository
 
