@@ -57,7 +57,10 @@ export class GitHubService {
                 path: filePath,
                 ref: branch,
             });
-            return Array.isArray(data) ? data[0].sha : data.sha;
+            if (Array.isArray(data)) {
+                throw new Error(`The path "${filePath}" corresponds to a directory, not a file.`);
+            }
+            return data.sha;
         } catch (error) {
             if ((error as { status: number }).status === 404) {
                 return null;
