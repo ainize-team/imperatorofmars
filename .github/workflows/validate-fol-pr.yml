@@ -2,6 +2,7 @@ name: Validate FOL with Check Run
 
 on:
     pull_request:
+        types: [opened]
         branches: [main]
         paths:
             - "fol/**/*.fol"
