@@ -6,10 +6,10 @@ import { GitHubService } from "@/lib/llm/github.service";
 export async function POST(request: NextRequest) {
     try {
         // 1. 요청에서 contents, parentHash, title 추출
-        const { contents, parentHash, title } = await request.json();
-        if (!contents || !parentHash || !title) {
+        const { contents, parentHash, signature, title } = await request.json();
+        if (!contents || !parentHash || !title || !signature)  {
             return NextResponse.json(
-                { error: "contents, parentHash, title이 필요합니다." },
+                { error: "contents, parentHash, signature, title이 필요합니다." },
                 { status: 400 },
             );
         }
