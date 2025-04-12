@@ -40,7 +40,6 @@ export default function Home() {
 
   const handleSelectedNode = (d: any) => {
     setSelectedNode((prevSelectedNode: any) => {
-      console.log("d, prevSelectedNode :>> ", d, prevSelectedNode);
       if (!d) return null;
       if (prevSelectedNode && prevSelectedNode.id === d.id) {
         return null;
@@ -99,7 +98,7 @@ export default function Home() {
     const newNode = createNewNode(input, newCid);
     setSelectedNode(newNode);
 
-    if (input.includes("water")) {
+    if (input.includes("Water")) {
       setShowDialog(true);
       return;
     }
@@ -152,7 +151,7 @@ export default function Home() {
     const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
     setNodes((prevNodes: any) => [
-      ...prevNodes.filter((node: any) => node.type === "message"),
+      ...prevNodes,
       newNode,
       ...hintNodes,
     ]);
@@ -161,7 +160,7 @@ export default function Home() {
       console.log("selectedNode in createnewnode :>> ", selectedNode);
       newNode.children.push(selectedNode.cid);
       setLinks((prevLinks: any) => [
-        ...prevLinks.filter((link: any) => link.type !== "dotted"),
+        ...prevLinks,
         { source: cid, target: selectedNode.id },
         ...hintLinks,
       ]);
