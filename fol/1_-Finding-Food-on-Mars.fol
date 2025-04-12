@@ -1,0 +1,109 @@
+hash: 6811d00958150d9f8921ad561a7382ead83a673a9d6943e50b350160e85af673
+parent_hash: 9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2
+signature: 0x9c5267534694a68815dd5cc276ab3bffd8f9716862a9cb3c43090a820368bdae5b44f276abe954b7697e201ec77641a3a9eaa9160dc8c3a1819f5952d62379a21c
+
+# First-Order Logic (FOL) Definition for Finding Food on Mars
+# Represents the static, foundational knowledge of the Mars environment.
+# Date: 2025-04-15
+
+# ==============================================================================
+# Constants - Representing specific entities in the world
+# ==============================================================================
+
+Mars
+ImperatorOfMars
+OlympusMons
+VallesMarineris
+GaleCrater
+JezeroCrater
+Perseverance
+Curiosity
+NorthPole
+SouthPole
+WaterIce
+CarbonDioxide
+Rock
+Soil
+Potatoes
+Carrots
+HumanColonist
+
+# ==============================================================================
+# Predicates - Defining properties and relationships
+# ==============================================================================
+
+# --- Types & Properties ---
+IsPlanet(object)
+IsEntity(object)
+IsMountain(object)
+IsValley(object)
+IsCrater(object)
+IsRover(object)
+IsPole(object)
+IsSubstance(object)
+IsRock(object)
+IsSoil(object)
+HasAtmosphere(planet)
+IsFrozen(substance)
+IsPlant(object)
+IsHuman(object)
+IsFood(object)
+
+# --- Relationships & Locations ---
+LocatedOn(feature, planet)
+LocatedIn(entity, location)
+ExistsAt(substance, location)
+PrimaryAtmosphericComponent(planet, substance)
+Plants(entity, plant, location)
+FoodSource(object)
+
+# ==============================================================================
+# Facts - Specific knowledge about the Mars world (Updated with User Input)
+# ==============================================================================
+
+# --- Type Assertions ---
+IsPlanet(Mars)
+IsEntity(ImperatorOfMars)
+IsMountain(OlympusMons)
+IsValley(VallesMarineris)
+IsCrater(GaleCrater)
+IsCrater(JezeroCrater)
+IsRover(Perseverance)
+IsRover(Curiosity)
+IsPole(NorthPole)
+IsPole(SouthPole)
+IsSubstance(WaterIce)
+IsSubstance(CarbonDioxide)
+IsPlant(Potatoes)
+IsPlant(Carrots)
+IsHuman(HumanColonist)
+IsFood(Potatoes)
+IsFood(Carrots)
+
+# --- Property Assertions ---
+HasAtmosphere(Mars)
+PrimaryAtmosphericComponent(Mars, CarbonDioxide)
+IsFrozen(WaterIce)
+
+# --- Location & Relationship Assertions ---
+LocatedOn(OlympusMons, Mars)
+LocatedOn(VallesMarineris, Mars)
+LocatedOn(GaleCrater, Mars)
+LocatedOn(JezeroCrater, Mars)
+LocatedOn(NorthPole, Mars)
+LocatedOn(SouthPole, Mars)
+LocatedIn(Perseverance, JezeroCrater)
+LocatedIn(Curiosity, GaleCrater)
+
+# Substance locations
+ExistsAt(WaterIce, NorthPole)
+ExistsAt(WaterIce, SouthPole)
+ExistsAt(CarbonDioxide, Mars)
+
+# New food sources and locations
+Plants(HumanColonist, Potatoes, Mars)
+Plants(HumanColonist, Carrots, Mars)
+.ExistsAt(Potatoes, JezeroCrater)
+.ExistsAt(Carrots, GaleCrater)
+
+# --- End of FOL Definition ---
