@@ -16,10 +16,12 @@
 2. **GitHub Actions 검증**
 
 - 제출된 FOL은 자동으로 GitHub Actions 워크플로우를 통해 검증됩니다
+  - [pull-request/route.ts](Dashboard/src/app/api/fol/pull-request/route.ts): PR 생성 및 관리
 - 워크플로우는 다음 단계를 수행합니다:
   - FOL 파일의 문법 검사
   - FOL 파일의 의미론적 검증
   - 검증 결과를 PR에 코멘트로 추가
+  - [validate-fol-pr.yml](.github/workflows/validate-fol-pr.yml): FOL 파일 검증 워크플로우
 
 <img src="images/generate-html.png" alt="이야기 생성" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
@@ -27,10 +29,11 @@
 
 - FOL 검증에 통과하면 해당 FOL을 기반으로 새로운 이야기가 자동 생성됩니다
 - 생성된 이야기는 HTML 형식으로 변환됩니다
+- [commit-html/route.ts](Dashboard/src/app/api/fol/commit-html/route.ts): HTML 생성 및 커밋
 
 <img src="images/merge-commit.png" alt="PR 머지" style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
 
-4. **구성원 합의 및 머지**
+1. **구성원 합의 및 머지**
 
    - 새로운 이야기에 대해 구성원들이 검토하고 합의에 도달합니다
    - 합의가 이루어지면 main 브랜치에 머지됩니다
