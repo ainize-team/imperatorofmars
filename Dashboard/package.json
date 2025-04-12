@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^2.2.4",
+    "@story-protocol/core-sdk": "^1.3.0",
+    "@tanstack/react-query": "^5.72.2",
     "next": "15.3.0",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
