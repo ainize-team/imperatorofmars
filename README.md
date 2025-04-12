@@ -113,3 +113,6 @@ Imperator of Mars is a proposed framework designed to address these problems. It
 * **Example from Demo:** At the start, the DAG might have a State Root hash like `0xabc...def`. When Alpha added Node 1 (Mark's departure), the hash changed to `0x123...456`. When Beta added Node 2, it changed again. This constantly updating hash proves the integrity of the *entire* chain of events. Anyone can use a Merkle Proof to verify that a specific node (like Node 1) is authentically part of the history represented by the latest root hash.
 
 ---
+
+
+![Imperator of Mars](./images/cover_image.png)
