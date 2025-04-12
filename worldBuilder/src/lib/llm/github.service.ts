@@ -150,4 +150,23 @@ export class GitHubService {
         await traverse(folderPath);
         return files;
     }
+
+    async getLatestCommitChangedFiles(branch: string): Promise<string[]> {
+        const { data } = await this.octokit.repos.listCommits({
+            owner: this.owner,
+            repo: this.repo,
+            branch,
+            per_page: 1,
+        });
+        const commit = data[0];
+        if (!commit) {
+            return [];
+        }
+        const { data: commitData } = await this.octokit.repos.getCommit({
+            owner: this.owner,
+            repo: this.repo,
+            ref: commit.sha,
+        });
+        return commitData.files?.map((file: { filename: string }) => file.filename) || [];
+    }
 }
