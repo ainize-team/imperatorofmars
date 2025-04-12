@@ -89,14 +89,14 @@ export default function Home() {
 
 
     // FIXME(yoojin): change title from getFOL
-    await createPullRequest({
+    const newCid = await createPullRequest({
       signature,
       parentHash: selectedNode? selectedNode.cid : "0x1234",
       FOL,
       title: folTitle,
     });
 
-    const newNode = createNewNode(input);
+    const newNode = createNewNode(input, newCid);
     setSelectedNode(newNode);
 
     if (input.includes("water")) {
@@ -139,19 +139,21 @@ export default function Home() {
     }
   }
 
-  const createNewNode = (input: string) => {
+  const createNewNode = (input: string, cid?: string) => {
+    cid = cid ? cid : generateCid(input);
     const newNode = {
+      id: cid,
+      cid,
       message: input,
       data: [],
       children: [] as any[],
       type: "message",
     };
-    const cid = generateCid(newNode);
     const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
     setNodes((prevNodes: any) => [
       ...prevNodes.filter((node: any) => node.type === "message"),
-      { ...newNode, cid, id: cid },
+      newNode,
       ...hintNodes,
     ]);
 
@@ -198,8 +200,9 @@ export default function Home() {
           parentHash,
         }),
       })
-      console.log('res.json() :>> ', await res.json());
-      return;
+      const data = await res.json();
+      console.log('res.json() :>> ', data);
+      return data.hash;
     } catch (error) {
       console.error("Error create PR:", error);
       toast.error("Failed to create Pull Request.");

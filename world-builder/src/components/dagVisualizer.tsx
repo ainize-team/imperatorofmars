@@ -84,7 +84,7 @@ export default function DagVisualizer({
               
               handleNodes(node);
               if (edge!.parent) {
-                handleLinks({source: edge!.parent, target: node.id})
+                handleLinks({source: edge!.parent, target: node.id, type: node.type === "hint" ? "dotted" : "solid"})
               }
               // Add child nodes to the queue
               node.children.map((childCid: string) => {
