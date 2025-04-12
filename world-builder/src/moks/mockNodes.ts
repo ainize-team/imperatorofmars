@@ -54,7 +54,7 @@ const mockNodes: {
 
 export const mockHintNodes: {[message: string]: string[]} = {
   "Food shortage crisis occurrence": [
-    "Potato parming.",
+    "Potato farming.",
     "Water exploration.",
   ]
 }
