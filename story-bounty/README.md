@@ -6,7 +6,7 @@ Preserve and protect creative **Content IP** assets using Story Protocol
 
 Our project enables builders to **mint and register their creative assets** as protected IP on the blockchain using **Story Protocol**.
 
-During the hackathon, we implemented this functionality end-to-end—from **IPFS asset upload**, to **NFT minting**, to **IP registration** via the Story SDK.
+During the hackathon, we implemented this functionality end-to-end—from **IPFS asset upload**, to **NFT minting**, to **IP registration** via the [Story SDK](https://github.com/storyprotocol/sdk).
 
 By safeguarding the ownership of the **creative building blocks** they produce, we aim to empower a future where IP attribution and licensing are **fair, transparent, and reward creators appropriately**.
 
