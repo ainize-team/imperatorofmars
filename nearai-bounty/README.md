@@ -16,7 +16,7 @@
 
 ## Responses from Agents
 
-### 1) Generated First-Order Logic from a Natural Language Prompt (TBA)
+### 1) Generated First-Order Logic from a Natural Language Prompt
 #### 1-1) User Input (Natural Language)
 <p align="center">
   <img src="./src/nearai_gen-fol_user_input.png" alt="Fullview of Agent Hub page">
