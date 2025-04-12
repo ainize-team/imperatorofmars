@@ -17,12 +17,15 @@ import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
 import { Address } from "viem";
 import { getFileHash } from "@/lib/functions/file";
 import { mockHintNodes } from "@/moks/mockNodes";
+import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
   const [nodes, setNodes] = useState<any>([]);
   const [links, setLinks] = useState<any>([]);
   const [selectedNode, setSelectedNode] = useState<any>();
+  const [showDialog, setShowDialog] = useState(false);
+
   const { data: wallet } = useWalletClient();
   const { signMessageAsync } = useSignMessage();
   const { client } = useStory();
@@ -78,28 +81,28 @@ export default function Home() {
     if (!signature) return;
 
     // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
-    // console.log("FRONT-END input :>> ", input);
-    // try {
-    //   const response = await fetch('/api/gen-fol', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ message: input }),
-    //   });
+    console.log("FRONT-END input :>> ", input);
+    try {
+      const response = await fetch('/api/gen-fol', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
 
-    //   const result = await response.json();
-    //   console.log("Agent response:", result);
-    // } catch (error) {
-    //   console.error("Error fetching FOL data:", error);
-    //   toast.error("Failed to fetch FOL data.");
-    //   return;
-    // }
+      const result = await response.json();
+      console.log("Agent response:", result);
+    } catch (error) {
+      console.error("Error fetching FOL data:", error);
+      toast.error("Failed to fetch FOL data.");
+      return;
+    }
 
     const newNode = createNewNode(input);
     setSelectedNode(newNode);
 
-    // TODO(jiyoung): move to FOL agent
     if (input.includes("KryptoPlanet")) {
-      await mintAndRegisterNFT();
+      setShowDialog(true);
+      return;
     }
 
     setInput("");
@@ -237,18 +240,28 @@ export default function Home() {
     setInput(message);
   }
 
+  const handleConfirmMint = async () => {
+    setShowDialog(false);
+    console.log("🎉 Minting logic for KryptoPlanet triggered!");
+    await mintAndRegisterNFT();
+  };
+
+  const handleCancelMint = () => {
+    setShowDialog(false);
+  };
+
   return (
     <div className="flex flex-col h-full w-full gap-5">
       <Navbar />
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
-        <DagVisualizer 
-          nodes={nodes} 
-          links={links} 
-          handleLinks={handleLinks} 
-          handleNodes={handleNodes} 
-          selectedNode={selectedNode} 
+        <DagVisualizer
+          nodes={nodes}
+          links={links}
+          handleLinks={handleLinks}
+          handleNodes={handleNodes}
+          selectedNode={selectedNode}
           handleSelectedNode={handleSelectedNode}
           handleInput={handleInputOnChild}
         />
@@ -269,11 +282,23 @@ export default function Home() {
               e.preventDefault();
               handleInput();
             }
-          }}></input>
-        <button className="" onClick={(e) => {
-          e.preventDefault();
-          handleInput();
-        }}>Generate</button>
+          }}
+        ></input>
+        <button
+          className=""
+          onClick={(e) => {
+            e.preventDefault();
+            handleInput();
+          }}
+        >
+          Generate
+        </button>
+        <DiscoveryDialog
+          open={showDialog}
+          onConfirm={handleConfirmMint}
+          onCancel={handleCancelMint}
+          name="KryptoPlanet"
+        />
       </div>
     </div>
   );

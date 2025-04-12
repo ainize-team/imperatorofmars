@@ -5,10 +5,7 @@ import { useWalletClient } from "wagmi";
 import { StoryClient, StoryConfig } from "@story-protocol/core-sdk";
 
 interface AppContextType {
-  txLoading: boolean;
-  txHash: string;
   client: StoryClient | undefined;
-  setTxHash: (txHash: string) => void;
 }
 
 export const AppContext = createContext<AppContextType | undefined>(undefined);
