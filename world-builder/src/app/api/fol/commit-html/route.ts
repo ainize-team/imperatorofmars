@@ -23,7 +23,7 @@ function parseFileHash(content: string): string | null {
 function parseParentHash(content: string): string | null {
   const lines = content.split("\n");
   for (const line of lines) {
-    const match = line.trim().match(/^parenthash:\s*(\S+)/);
+    const match = line.trim().match(/^parent_hash:\s*(\S+)/);
     if (match) {
       return match[1];
     }
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
   try {
     // 1. 요청에서 branch 이름만 추출
     const { branch } = await request.json();
-    console.log("branch", branch);
     if (!branch) {
       return NextResponse.json({ error: "branch가 필요합니다." }, { status: 400 });
     }
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest) {
     if (chainFiles.length === 0) {
       return NextResponse.json({ error: "체인에 해당하는 FOL 파일이 없습니다." }, { status: 400 });
     }
-    console.log("chainFiles", chainFiles);
     // 4. 최신 커밋에서 변경된 파일 목록을 조회 (GitHub API 사용)
     const changedFiles = await githubService.getLatestCommitChangedFiles(branch);
     // 변경된 파일 중 "fol/"로 시작하고 .fol로 끝나는 파일만 선택
@@ -77,7 +75,6 @@ export async function POST(request: NextRequest) {
     }
     // 최신 커밋에서 변경된 FOL 파일 중 첫 번째 파일을 tipFile로 사용
     const tipFilePath = changedFolFiles[0];
-    console.log("tipFilePath", tipFilePath);
     const tipFile = chainFiles.find((file) => file.path === tipFilePath);
     if (!tipFile) {
       return NextResponse.json(
@@ -98,11 +95,13 @@ export async function POST(request: NextRequest) {
         fileMap[ownHash] = file;
       }
     }
-    console.log("fileMap", fileMap);
-    // 체인 추적: 현재 파일의 컨텐츠에서 "parenthash:" 값을 읽어 부모 파일를 찾음
+    console.log("fileMap", Object.keys(fileMap));
+    // 체인 추적: 현재 파일의 컨텐츠에서 "parent_hash:" 값을 읽어 부모 파일를 찾음
     while (currentFile) {
+      console.log("currentFile", currentFile.path);
       chain.unshift(currentFile); // unshift하면 결과적으로 Genesis부터 tip 순이 됨
       const parentHash = parseParentHash(currentFile.content);
+      console.log("parentHash", parentHash);
       if (!parentHash) break;
       const parentFile = fileMap[parentHash];
       if (!parentFile) break;
@@ -116,7 +115,7 @@ export async function POST(request: NextRequest) {
     console.log("sortedDocFiles", sortedDocFiles);
     // 7. docs 폴더 내 HTML 파일들의 실제 컨텐츠를 가져옵니다.
     const docContents = await Promise.all(
-      sortedDocFiles.map(async (docFile) => {
+      sortedDocFiles.slice(0, -1).map(async (docFile) => {
         const docFilePath = `docs/${docFile}`;
         const docContent = await githubService.getFileContent(docFilePath, branch);
         return docContent;

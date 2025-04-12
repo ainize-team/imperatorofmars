@@ -88,10 +88,7 @@ export async function POST(request: NextRequest) {
 
     const githubService = new GitHubService();
 
-    // 2. 작업할 브랜치는 여기서는 "node" 브랜치를 사용 (체인 관리를 위해)
-    const branch = "node";
     const baseSha = await githubService.getMainBranchSha();
-    await githubService.createOrGetBranch(branch, baseSha);
 
     // 3. main 브랜치의 fol 폴더 내 모든 FOL 파일들을 조회
     //    파일명 형식은 {identifier}_{title}.fol
