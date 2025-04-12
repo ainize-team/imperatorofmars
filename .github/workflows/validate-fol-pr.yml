@@ -1,136 +1,139 @@
 name: Validate FOL with Check Run
 
 on:
-    pull_request:
-        types: [opened]
-        branches: [main]
-        paths:
-            - "fol/**/*.fol"
-            - "fol/*.fol" # fol/ 바로 아래 파일도 포함
+  pull_request:
+    types: [opened]
+    branches: [main]
+    paths:
+      - "fol/**/*.fol"
+      - "fol/*.fol" # fol/ 바로 아래 파일도 포함
 
 jobs:
-    validate-fol:
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            checks: write # Check Run 결과 기록용 권한
-            pull-requests: read
+  validate-fol:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write # Check Run 결과 기록용 권한
+      pull-requests: read
 
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v3
-              with:
-                  fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 전체 히스토리를 가져와 base와 head 커밋 모두 사용 가능하게 함
 
-            # 최신 커밋에서 fol 파일 변경이 있었는지 확인
-            - name: Check for fol changes in latest commit
-              id: check_fol_changes
-              run: |
-                  CHANGES=$(git diff --name-only HEAD~1 HEAD)
-                  echo "Changed files in last commit: $CHANGES"
-                  if echo "$CHANGES" | grep -q '^fol/'; then
-                    echo "fol_changes=true" >> $GITHUB_OUTPUT
-                  else
-                    echo "fol_changes=false" >> $GITHUB_OUTPUT
-                  fi
+      # 최신 커밋에서 fol 파일 변경이 있었는지 확인
+      - name: Check for fol changes in latest commit
+        id: check_fol_changes
+        run: |
+          CHANGES=$(git diff --name-only HEAD~1 HEAD)
+          echo "Changed files in last commit: $CHANGES"
+          if echo "$CHANGES" | grep -q '^fol/'; then
+            echo "fol_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "fol_changes=false" >> $GITHUB_OUTPUT
+          fi
 
-            - name: Exit workflow if no fol changes in latest commit
-              if: steps.check_fol_changes.outputs.fol_changes != 'true'
-              run: |
-                  echo "No new fol changes in latest commit. Exiting workflow."
-                  exit 0
+      - name: Exit workflow if no fol changes in latest commit
+        if: steps.check_fol_changes.outputs.fol_changes != 'true'
+        run: |
+          echo "No new fol changes in latest commit. Exiting workflow."
+          exit 0
 
-            # 이하 단계는 최신 커밋에서 fol 변경이 있을 때만 실행됨
+      # 이하 단계는 최신 커밋에서 fol 변경이 있을 때만 실행됨
 
-            - name: Identify changed .fol files (for validation)
-              id: find_files
-              run: |
-                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
-                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
-                  echo "CHANGED_FILES: [$CHANGED_FILES]"
-                  echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+      - name: Identify changed .fol files (for validation)
+        id: find_files
+        run: |
+          echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
+          echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
+          echo "CHANGED_FILES: [$CHANGED_FILES]"
+          echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
-            - name: Build JSON payload for validation API
-              id: build_payload
-              run: |
-                  FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
-                  echo "DEBUG: Files = [$FILES]"
-                  PAYLOAD="{\"files\":["
-                  for file in $FILES; do
-                    if [ -f "$file" ]; then
-                      CONTENT=$(jq -Rs . < "$file")
-                    else
-                      CONTENT="\"\""
-                    fi
-                    PAYLOAD="${PAYLOAD}{\"path\":\"$file\",\"content\":${CONTENT}},"
-                  done
-                  PAYLOAD="${PAYLOAD%,}]}"
-                  echo "$PAYLOAD" > payload.json
-                  echo "----- Generated payload.json -----"
-                  cat payload.json
-                  echo "----------------------------------"
-                  echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
+      - name: Build JSON payload for validation API
+        id: build_payload
+        run: |
+          FILES=$(echo "${{ steps.find_files.outputs.files }}" | xargs)
+          echo "DEBUG: Files = [$FILES]"
+          PAYLOAD="{\"files\":["
+          for file in $FILES; do
+            # 파일 이름을 안전하게 JSON 문자열로 이스케이프 처리 (jq -Rs 사용)
+            ESCAPED_FILE=$(jq -Rs --arg f "$file" '$f')
+            if [ -f "$file" ]; then
+              CONTENT=$(jq -Rs < "$file")
+            else
+              CONTENT="\"\""
+            fi
+            PAYLOAD="${PAYLOAD}{\"path\":${ESCAPED_FILE},\"content\":${CONTENT}},"
+          done
+          # 마지막 쉼표 제거 후 JSON 배열 닫기
+          PAYLOAD="${PAYLOAD%,}]}"
+          echo "$PAYLOAD" > payload.json
+          echo "----- Generated payload.json -----"
+          cat payload.json
+          echo "----------------------------------"
+          echo "payload=$PAYLOAD" >> $GITHUB_OUTPUT
 
-            - name: Call FOL Validation API
-              id: call_api
-              run: |
-                  STATUS=$(curl -s -o response.json -w "%{http_code}" \
-                    -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/validate \
-                    -H "Content-Type: application/json" \
-                    -d @payload.json)
-                  echo "status=$STATUS" >> $GITHUB_OUTPUT
-                  BODY=$(cat response.json)
-                  echo "body=$BODY" >> $GITHUB_OUTPUT
-                  echo "API HTTP Status Code: $STATUS"
-                  echo "----- API Response (response.json) -----"
-                  cat response.json
-                  echo "-----------------------------------------"
+      - name: Call FOL Validation API
+        id: call_api
+        run: |
+          STATUS=$(curl -s -o response.json -w "%{http_code}" \
+            -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/validate \
+            -H "Content-Type: application/json" \
+            -d @payload.json)
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          BODY=$(cat response.json)
+          echo "body=$BODY" >> $GITHUB_OUTPUT
+          echo "API HTTP Status Code: $STATUS"
+          echo "----- API Response (response.json) -----"
+          cat response.json
+          echo "-----------------------------------------"
 
-            - name: Report Check Run (Pass)
-              if: steps.call_api.outputs.status == '200'
-              uses: LouisBrunner/checks-action@v1.6.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: FOL Consistency Check
-                  conclusion: success
-                  output: |
-                      {
-                        "title": "✅ .fol 정합성 검사 통과",
-                        "summary": "모든 .fol 파일이 검사를 통과했습니다.",
-                        "text": ${{ toJson(steps.find_files.outputs.files) }}
-                      }
+      - name: Report Check Run (Pass)
+        if: steps.call_api.outputs.status == '200'
+        uses: LouisBrunner/checks-action@v1.6.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: FOL Consistency Check
+          conclusion: success
+          output: |
+            {
+              "title": "✅ .fol 정합성 검사 통과",
+              "summary": "모든 .fol 파일이 검사를 통과했습니다.",
+              "text": ${{ toJson(steps.find_files.outputs.files) }}
+            }
 
-            - name: Report Check Run (Fail)
-              if: steps.call_api.outputs.status != '200'
-              uses: LouisBrunner/checks-action@v1.6.0
-              with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  name: FOL Consistency Check
-                  conclusion: failure
-                  output: |
-                      {
-                        "title": "❌ .fol 정합성 검사 실패",
-                        "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
-                        "text": ${{ toJson(steps.call_api.outputs.body) }}
-                      }
+      - name: Report Check Run (Fail)
+        if: steps.call_api.outputs.status != '200'
+        uses: LouisBrunner/checks-action@v1.6.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: FOL Consistency Check
+          conclusion: failure
+          output: |
+            {
+              "title": "❌ .fol 정합성 검사 실패",
+              "summary": "Webhook 응답 상태: ${{ steps.call_api.outputs.status }}",
+              "text": ${{ toJson(steps.call_api.outputs.body) }}
+            }
 
-            - name: Fail workflow on validation error
-              if: steps.call_api.outputs.status != '200'
-              run: exit 1
+      - name: Fail workflow on validation error
+        if: steps.call_api.outputs.status != '200'
+        run: exit 1
 
-            - name: Send branch to Commit HTML API
-              run: |
-                  echo "Getting branch name..."
-                  BRANCH=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | awk -F'/' '{print $3}')}
-                  echo "Current branch: $BRANCH"
-                  JSON_PAYLOAD="{\"branch\": \"${BRANCH}\"}"
-                  echo "Payload for commit-html API:"
-                  echo "$JSON_PAYLOAD"
-                  curl -s -o commit_response.json -w "%{http_code}" \
-                    -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/commit-html \
-                    -H "Content-Type: application/json" \
-                    -d "$JSON_PAYLOAD"
-                  echo "----- Response from commit-html API -----"
-                  cat commit_response.json
-                  echo "------------------------------------------"
+      - name: Send branch to Commit HTML API
+        run: |
+          echo "Getting branch name..."
+          BRANCH=${GITHUB_HEAD_REF:-$(echo $GITHUB_REF | awk -F'/' '{print $3}')}
+          echo "Current branch: $BRANCH"
+          JSON_PAYLOAD="{\"branch\": \"${BRANCH}\"}"
+          echo "Payload for commit-html API:"
+          echo "$JSON_PAYLOAD"
+          curl -s -o commit_response.json -w "%{http_code}" \
+            -X POST https://imperator-of-mars.ainetwork.xyz/api/fol/commit-html \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD"
+          echo "----- Response from commit-html API -----"
+          cat commit_response.json
+          echo "------------------------------------------"
