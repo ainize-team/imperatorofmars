@@ -152,7 +152,7 @@ signature: ${signature}
 ${contents}`;
 
     // 9. 새로운 브랜치는 "node/<name>" 형식으로 생성
-    const newBranch = `node/${name}`;
+    const newBranch = `node/${newFileHash}`;
     await githubService.createOrGetBranch(newBranch, baseSha);
 
     // 10. 해당 브랜치에서 새 FOL 파일 생성 (존재하면 업데이트)
