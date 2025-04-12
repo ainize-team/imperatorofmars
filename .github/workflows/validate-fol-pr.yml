@@ -44,9 +44,8 @@ jobs:
             - name: Identify changed .fol files (for validation)
               id: find_files
               run: |
-                  echo "Base SHA: ${{ github.event.pull_request.base.sha }}"
-                  echo "Head SHA: ${{ github.event.pull_request.head.sha }}"
-                  CHANGED_FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} -- "fol/*.fol" "fol/**/*.fol")
+                  # 최신 커밋과 그 직전 커밋 간의 diff를 계산
+                  CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD -- "fol/*.fol" "fol/**/*.fol")
                   echo "CHANGED_FILES: [$CHANGED_FILES]"
                   echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
 
