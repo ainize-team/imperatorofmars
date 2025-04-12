@@ -56,7 +56,78 @@ export async function POST(req: NextRequest) {
 
   console.log("Extracted Message:", extractedMessage);
 
-  const constantFOL = 'LocatedIn(Perseverance, JezeroCrater)'
+  const constantFOL = `
+    # First-Order Logic (FOL) Definition for the SoulFiction: Imperator of Mars World Model
+    # Consistent and unified representation
+    # Date: 2025-04-12
+
+    # Constants
+    Mars
+    ImperatorOfMars
+    OlympusMons
+    VallesMarineris
+    GaleCrater
+    JezeroCrater
+    Perseverance
+    Curiosity
+    NorthPole
+    SouthPole
+    WaterIce
+    CarbonDioxide
+    Rock
+    Soil
+
+    # Predicates
+    IsPlanet(object)
+    IsEntity(object)
+    IsMountain(object)
+    IsValley(object)
+    IsCrater(object)
+    IsRover(object)
+    IsPole(object)
+    IsSubstance(object)
+    IsRock(object)
+    IsSoil(object)
+    HasAtmosphere(planet)
+    IsFrozen(substance)
+    LocatedOn(feature, planet)
+    LocatedIn(entity, location)
+    ExistsAt(substance, location)
+    PrimaryAtmosphericComponent(planet, substance)
+
+    # Facts
+    # Type Assertions
+    IsPlanet(Mars)
+    IsEntity(ImperatorOfMars)
+    IsMountain(OlympusMons)
+    IsValley(VallesMarineris)
+    IsCrater(GaleCrater)
+    IsCrater(JezeroCrater)
+    IsRover(Perseverance)
+    IsRover(Curiosity)
+    IsPole(NorthPole)
+    IsPole(SouthPole)
+    IsSubstance(WaterIce)
+    IsSubstance(CarbonDioxide)
+
+    # Property Assertions
+    HasAtmosphere(Mars)
+    PrimaryAtmosphericComponent(Mars, CarbonDioxide)
+    IsFrozen(WaterIce)
+
+    # Location & Relationship Assertions
+    LocatedOn(OlympusMons, Mars)
+    LocatedOn(VallesMarineris, Mars)
+    LocatedOn(GaleCrater, Mars)
+    LocatedOn(JezeroCrater, Mars)
+    LocatedOn(NorthPole, Mars)
+    LocatedOn(SouthPole, Mars)
+    LocatedIn(Perseverance, JezeroCrater)
+    LocatedIn(Curiosity, GaleCrater)
+    ExistsAt(WaterIce, NorthPole)
+    ExistsAt(WaterIce, SouthPole)
+    ExistsAt(CarbonDioxide, Mars)
+  `
   // 클라이언트로 반환
   // return NextResponse.json({ threadId, message: extractedMessage });
   return NextResponse.json({ threadId, message: constantFOL });
