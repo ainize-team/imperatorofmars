@@ -1,15 +1,57 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+
+import DagVisualizer from "@/components/dagVisualizer";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import Navbar from "@/components/sections/Navbar";
 import FeedVeiwer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
+import { generateCid } from "@/utils/crypto";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
+  const [nodes, setNodes] = useState<any>([]);
+  const [links, setLinks] = useState<any>([]);
+  const [selectedNodes, setSelectedNodes] = useState<any>([]); // Change to array
+
+  const handleNodes = (newNode: any) => {
+    setNodes((prevNodes: any) => [...prevNodes, newNode]);
+  }
+
+  const handleLinks = (newLink: any) => {
+    setLinks((prevLinks: any) => [...prevLinks, newLink]);
+  }
+
+  const handleSelectedNodes = (d: any) => {
+    setSelectedNodes((prevSelectedNodes: any) => {
+      if (prevSelectedNodes.some((node: any) => node.id === d.id)) {
+        return prevSelectedNodes.filter((node: any) => node.id !== d.id);
+      } else {
+        return [...prevSelectedNodes, d];
+      }
+    });
+  }
 
   const handleInput = async () => {
     if (!input.trim()) return;
+
+    const newNode = {
+      message: input,
+      data: [],
+      children: [] as any[]
+    }
+    const cid = generateCid(newNode);
+    selectedNodes.forEach((node: any) => {
+      newNode.children.push(node.cid);
+    });
+    setNodes((prevNodes: any) => [...prevNodes, {...newNode, cid, id: cid}])
+    selectedNodes.forEach((node: any) => {
+      setLinks((prevLinks: any) => [
+        ...prevLinks, 
+        { source: cid, target: node.id }
+      ]);
+    })
 
     const tid1 = toast.loading("Uploading image to IPFS...");
     // TODO(jiyoung): upload image to IPFS
@@ -47,7 +89,7 @@ export default function Home() {
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
-        <div className="flex-1 border-2 border-black h-[80vh]">Dag visualizer</div>
+        <DagVisualizer nodes={nodes} links={links} handleLinks={handleLinks} handleNodes={handleNodes} selectedNodes={selectedNodes} handleSelectedNodes={handleSelectedNodes} />
         <FeedVeiwer />
       </div>
       {/* Input */}
@@ -62,9 +104,8 @@ export default function Home() {
               e.preventDefault();
               handleInput();
             }
-          }}
-        ></input>
-        <button className="">Generate</button>
+          }}></input>
+        <button className="" onClick={handleInput}>Generate</button>
       </div>
     </div>
   );
