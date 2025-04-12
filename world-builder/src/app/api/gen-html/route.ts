@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const { pairedFolHtmlContents } = await req.json();
+  const { folContents, docContents } = await req.json();
+
+  const pairedFolHtmlContents = folContents
+      .map(
+        (folContent, index) => `
+    FOL file ${index + 1}:
+    ${folContent}
+
+    HTML conversion ${index + 1}:
+    ${docContents[index]}
+    `,
+      )
+      .join("\n");
 
   const authPayload = {
     account_id: process.env.NEAR_ACCOUNT_ID,
