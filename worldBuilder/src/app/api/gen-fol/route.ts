@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       "Authorization": `Bearer ${JSON.stringify(authPayload)}`
     },
     body: JSON.stringify({
-      agent_id: "kyungmoonleecomcom.near/fol_generator_v1/0.0.1", 
+      agent_id: "kyungmoonleecomcom.near/fol_generator_v1/0.0.2", 
       new_message: message,
       max_iterations: "1"
     })
