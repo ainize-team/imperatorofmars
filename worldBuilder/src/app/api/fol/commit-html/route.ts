@@ -111,9 +111,13 @@ export async function POST(request: NextRequest) {
         // 7. Anthropic 서비스를 사용해 HTML 스토리 생성 (체인 전체를 전달)
         const htmlStory = await anthropicService.generateHtmlStory(chain);
 
-        // 8. docs 폴더 내 보고서 파일 생성: branch 이름을 파일명으로 사용 ("/" 치환)
-        const sanitizedBranchName = branch.replace(/\//g, "-");
-        const htmlFilePath = `docs/${sanitizedBranchName}.html`;
+        // 8. docs 폴더 내 보고서 파일 생성: FOL 파일 이름과 동일하게
+        const tipFileName =
+            tipFilePath
+                .split("/")
+                .pop()
+                ?.replace(/\.fol$/, ".html") || "";
+        const htmlFilePath = `docs/${tipFileName}`;
         const existingFileSha = await githubService.getFileSha(htmlFilePath, branch);
         await githubService.createOrUpdateFile(
             htmlFilePath,
@@ -126,8 +130,8 @@ export async function POST(request: NextRequest) {
         const result = {
             message: "HTML files committed successfully.",
             htmlFile: htmlFilePath,
-            folChain: sortedFolFiles, // FOL 파일명 체인 배열
-            docsChain: sortedDocFiles, // docs HTML 파일명 체인 배열
+            folChain: sortedFolFiles,
+            docsChain: sortedDocFiles,
         };
 
         return NextResponse.json(result);
