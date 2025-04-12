@@ -16,6 +16,7 @@ import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
 import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
 import { Address } from "viem";
 import { getFileHash } from "@/lib/functions/file";
+import { mockHintNodes } from "@/moks/mockNodes";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
@@ -77,21 +78,21 @@ export default function Home() {
     if (!signature) return;
 
     // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
-    console.log("FRONT-END input :>> ", input);
-    try {
-      const response = await fetch('/api/gen-fol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
+    // console.log("FRONT-END input :>> ", input);
+    // try {
+    //   const response = await fetch('/api/gen-fol', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ message: input }),
+    //   });
 
-      const result = await response.json();
-      console.log("Agent response:", result);
-    } catch (error) {
-      console.error("Error fetching FOL data:", error);
-      toast.error("Failed to fetch FOL data.");
-      return;
-    }
+    //   const result = await response.json();
+    //   console.log("Agent response:", result);
+    // } catch (error) {
+    //   console.error("Error fetching FOL data:", error);
+    //   toast.error("Failed to fetch FOL data.");
+    //   return;
+    // }
 
     const newNode = createNewNode(input);
     setSelectedNode(newNode);
@@ -125,7 +126,7 @@ export default function Home() {
       type: "message",
     }
     const cid = generateCid(newNode);
-    const { hintNodes, hintLinks } = makeHintNode(cid, ["Plant potatos", "Find water"]);
+    const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
     setNodes(
       (prevNodes: any) => 

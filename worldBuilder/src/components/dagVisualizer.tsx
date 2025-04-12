@@ -32,15 +32,6 @@ export default function DagVisualizer({
   const [fetchingCid, setFetchingCid] = useState<string>('');
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
-  // Initialize API connection
-  useEffect(() => {
-    const cid = "ebf6267e59b8ca6124d7532cb5fd130e75c338d88c8bf8b182bfa644e6bce2df";
-    if (cid) {
-      setFetchingCid(cid);
-      fetchNodeByCid(cid);
-    }
-  }, []);
-
   useEffect(() => {
     console.log(selectedNode);
   }, [selectedNode]);
