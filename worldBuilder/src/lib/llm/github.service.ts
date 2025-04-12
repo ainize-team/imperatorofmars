@@ -150,4 +150,25 @@ export class GitHubService {
         await traverse(folderPath);
         return files;
     }
+
+    /**
+     * 지정된 branch의 최신 커밋에서 변경된 파일 경로 목록을 반환합니다.
+     * @param branch - 대상 브랜치 이름
+     * @returns Promise<string[]> - 최신 커밋에서 변경된 파일 경로의 배열
+     */
+    async getLatestCommitChangedFiles(branch: string): Promise<string[]> {
+        // branch의 최신 커밋 정보를 가져옵니다.
+        const { data: commit } = await this.octokit.repos.getCommit({
+            owner: this.owner,
+            repo: this.repo,
+            ref: branch,
+        });
+        // commit.files 필드에는 해당 커밋에서 변경된 파일 정보가 포함됩니다.
+        if (!commit.files) {
+            return [];
+        }
+
+        // 각 파일의 filename 속성을 추출하여 배열로 반환
+        return commit.files.map((file) => file.filename);
+    }
 }
