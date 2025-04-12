@@ -9,6 +9,7 @@ import FeedVeiwer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
 import DagVisualizer from "@/components/dagVisualizer";
 import { generateCid } from "@/utils/crypto";
+import NodeMetadataViewer from "@/components/nodeMetadataViewer";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
@@ -67,8 +68,8 @@ export default function Home() {
     const signature = await signMessage();
     if (!signature) return;
 
-    const cid = createNewNode(input);
-    setSelectedNode(cid);
+    const newNode = createNewNode(input);
+    setSelectedNode(newNode);
 
     await mintAndRegisterNFT();
 
@@ -96,7 +97,7 @@ export default function Home() {
       type: "message",
     }
     const cid = generateCid(newNode);
-    const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
+    const { hintNodes, hintLinks } = makeHintNode(cid, ["Plant potatos", "Find water"]);
 
     setNodes(
       (prevNodes: any) => 
@@ -129,7 +130,7 @@ export default function Home() {
     }
 
     
-    return cid;
+    return {...newNode, cid, id: cid};
   };
 
   const mintAndRegisterNFT = async () => {
@@ -185,7 +186,10 @@ export default function Home() {
           handleSelectedNode={handleSelectedNode}
           handleInput={handleInputOnChild}
         />
-        <FeedVeiwer />
+        <div className="flex-1 flex flex-col gap-2 max-w-[350px]">
+          <FeedVeiwer />
+          <NodeMetadataViewer node={selectedNode} />
+        </div>
       </div>
       {/* Input */}
       <div className="flex flex-row border-2 border-black w-full justify-between p-1">

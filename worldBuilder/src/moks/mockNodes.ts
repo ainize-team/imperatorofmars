@@ -9,7 +9,7 @@ const mockNodes: {
   "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b": {
     children: [],
     cid: 'a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b',
-    message: '사용자 Alpha, Mark의 화성 출발 기록!',
+    message: "User Alpha, Mark's Mars Departure Record!",
     data: []
   }
 }
