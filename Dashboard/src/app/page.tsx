@@ -2,6 +2,7 @@
 "use client";
 
 import DagVisualizer from "@/components/dagVisualizer";
+import Navbar from "@/components/sections/Navbar";
 import FeedVeiwer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
 import { generateCid } from "@/utils/crypto";
@@ -33,6 +34,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-full w-full gap-5">
+      <Navbar />
       {/* Contents */}
       <div className="flex flex-row gap-4">
         <FOLViewer />
