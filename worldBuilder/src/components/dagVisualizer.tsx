@@ -15,9 +15,18 @@ type props = {
   handleLinks: Function,
   selectedNodes: any[],
   handleSelectedNodes: Function,
+  handleInput: Function,
 }
 
-export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, selectedNodes, handleSelectedNodes }: props) {
+export default function DagVisualizer({ 
+  nodes, 
+  handleNodes, 
+  links,
+  handleLinks, 
+  selectedNodes, 
+  handleSelectedNodes,
+  handleInput,
+}: props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
   const [fetchingCid, setFetchingCid] = useState<string>('');
@@ -25,8 +34,7 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
 
   // Initialize API connection
   useEffect(() => {
-    const cid = "1f76cfcc484e26c8a61aaf5465c3fad759f847c93f6bbe50048b5556309d594e";
-    console.log('cid :>> ', cid);
+    const cid = "a97c97fdb33b71373559dac5284b085a64a77f84e995f62ad58b489626e9779b";
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
@@ -60,7 +68,6 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
           try {
             const nodeResponse = await fetch(`/api/dag/get?cid=${edge!.cid}`);
             const nodeResult = await nodeResponse.json();
-            console.log('nodeResult :>> ', nodeResult);
             if (nodeResult && !nodes.some((n: any) => n.cid === nodeResult.cid)) {
               const node = {
                 id: nodeResult.cid,
@@ -98,10 +105,9 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
   // Initialize D3 visualization
   useEffect(() => {
     if (nodes.length === 0 || typeof window === 'undefined') return;
-
     // D3 visualization setup
-    const width = 600;
-    const height = 1200;
+    const width = 500;
+    const height = 800;
     
     // Remove previous SVG
     d3.select("#dag-container svg").remove();
@@ -137,13 +143,26 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
       .attr("fill", "#999")
       .attr("d", "M0,-5L10,0L0,5");
     
+      svg.append("defs").append("marker")
+      .attr("id", "dotted-arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 25)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("fill", "#333")
+      .attr("d", "M0,-5L10,0L0,5");
+
     // Draw links
     const link = svg.append("g")
       .selectAll("line")
       .data(linkData)
       .join("line")
-      .attr("stroke", "#999")
+      .attr("stroke", (d: any) => d.type === "dotted" ? "#333" : "#999")
       .attr("stroke-opacity", 0.6)
+      .attr("stroke-dasharray", d => d.type === "dotted" ? "4 2" : "none")
       .attr("stroke-width", 2)
       .attr("marker-end", "url(#arrow)");
     
@@ -160,7 +179,11 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
           .on("end", dragended))
       .on("click", (event, d) => {
         // Toggle node selection
-        handleSelectedNodes(d);
+        if (d.type === "hint") {
+          handleInput(d.message || "");
+        } else {
+          handleSelectedNodes(d);
+        }
         event.stopPropagation();
       });
     
