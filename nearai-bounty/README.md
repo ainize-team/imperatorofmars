@@ -17,6 +17,22 @@
 ## Responses from Agents
 
 ### Generated First-Order Logic from a Natural Language Prompt (TBA)
+#### User Input (Natural Language)
+<p align="center">
+  <img src="./src/nearai_gen-fol_user_input.png" alt="Fullview of Agent Hub page">
+</p>
+
+#### FOL Generation Results
+<p align="center">
+  <img src="./src/nearai_gen-fol_res1.png" alt="Fullview of Agent Hub page">
+</p>
+<p align="center">
+  <img src="./src/nearai_gen-fol_res2.png" alt="Fullview of Agent Hub page">
+</p>
+<p align="center">
+  <img src="./src/nearai_gen-fol_res3.png" alt="Fullview of Agent Hub page">
+</p>
+
 
 ### Generated HTML from the aforementioned First-Order Logic (TBA)
 
