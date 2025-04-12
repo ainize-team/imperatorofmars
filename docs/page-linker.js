@@ -1,7 +1,7 @@
-// page-linker.js
+// page-linker.js - 개선된 버전
 (function() {
-    // Path to your sitemap.json file
-    const sitemapUrl = '/sitemap.json';
+    // 상대 경로로 sitemap.json을 참조 (더 안정적)
+    const sitemapUrl = 'sitemap.json';
     
     /**
      * Load the sitemap data and process the page
@@ -11,11 +11,13 @@
             // Fetch the sitemap
             const response = await fetch(sitemapUrl);
             if (!response.ok) {
-                throw new Error(`Failed to load sitemap: ${response.status}`);
+                console.warn(`Failed to load sitemap: ${response.status}`);
+                return;
             }
             
             // Parse the JSON data
             const pages = await response.json();
+            console.log("Sitemap loaded:", pages); // 디버깅을 위한 로그
             
             // Add the next page link
             addNextPageLink(pages);
@@ -30,7 +32,9 @@
      */
     function getCurrentFilename() {
         const path = window.location.pathname;
-        return path.split('/').pop(); // Get the last part of the path
+        const filename = path.split('/').pop() || 'index.html'; // 빈 문자열이면 index.html로 처리
+        console.log("Current filename:", filename); // 디버깅을 위한 로그
+        return filename;
     }
     
     /**
@@ -38,17 +42,21 @@
      */
     function findCurrentPage(pages) {
         const currentFilename = getCurrentFilename();
-        return pages.find(page => page.file === currentFilename);
+        const currentPage = pages.find(page => page.file === currentFilename);
+        console.log("Current page:", currentPage); // 디버깅을 위한 로그
+        return currentPage;
     }
     
     /**
      * Find the next page based on the current page index
      */
     function findNextPage(pages, currentPage) {
-        if (!currentPage || !currentPage.index) return null;
+        if (!currentPage || typeof currentPage.index !== 'number') return null;
         
         // Find the page with the next sequential index
-        return pages.find(page => page.index === currentPage.index + 1);
+        const nextPage = pages.find(page => page.index === currentPage.index + 1);
+        console.log("Next page:", nextPage); // 디버깅을 위한 로그
+        return nextPage;
     }
     
     /**
@@ -95,10 +103,18 @@
     function addNextPageLink(pages) {
         // Find the current and next pages
         const currentPage = findCurrentPage(pages);
+        if (!currentPage) {
+            console.warn("Current page not found in sitemap");
+            return;
+        }
+        
         const nextPage = findNextPage(pages, currentPage);
         
         // Exit if there's no next page
-        if (!nextPage) return;
+        if (!nextPage) {
+            console.log("No next page found");
+            return;
+        }
         
         // Add styles
         addStyles();
@@ -115,6 +131,7 @@
         // Add to the page
         container.appendChild(link);
         document.body.appendChild(container);
+        console.log("Next page link added");
     }
     
     // Initialize when the DOM is fully loaded
