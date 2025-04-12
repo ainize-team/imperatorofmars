@@ -34,8 +34,10 @@ export async function POST(request: NextRequest) {
             newBranch,
             `자동 생성된 PR입니다. 파일 \`${filePath}\`이 추가되었습니다.`,
         );
-
-        return NextResponse.json({ pullRequest });
+        return NextResponse.json({
+            message: "PR 생성 성공",
+            pullRequestLink: pullRequest.html_url,
+        });
     } catch (error) {
         console.error("Error in create-file API:", error);
         return NextResponse.json(

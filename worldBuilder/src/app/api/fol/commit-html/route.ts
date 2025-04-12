@@ -1,6 +1,7 @@
 // app/api/fol/commit-html/route.js
 import { NextRequest, NextResponse } from "next/server";
 import { GitHubService } from "@/services/github.service";
+import { OpenAIService } from "@/services/openai.service";
 
 export async function POST(request: NextRequest) {
     try {
@@ -17,28 +18,13 @@ export async function POST(request: NextRequest) {
         }
 
         const githubService = new GitHubService();
+        const openaiService = new OpenAIService();
 
         // 해당 branch의 "fol" 디렉토리 내 모든 .fol 파일들을 읽어옴
-        const files = await githubService.getFolderFiles("fol", branch);
+        const folFiles = await githubService.getFolderFiles("fol", branch);
 
-        // HTML 보고서 생성: 각 파일의 경로와 내용을 나열합니다.
-        const htmlReport = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>FOL Report - ${branch}</title>
-</head>
-<body>
-  <h1>FOL Report for ${branch}</h1>
-  <ul>
-    ${files
-        .map((file) => `<li><strong>${file.path}</strong>: <pre>${file.content}</pre></li>`)
-        .join("")}
-  </ul>
-</body>
-</html>
-    `;
+        // OpenAI를 사용하여 HTML 보고서 생성
+        const htmlStory = await openaiService.generateHtmlStory(folFiles);
 
         // branch 이름을 파일명으로 사용 ("/" → "-" 치환)하여 docs 폴더 내에 저장
         const sanitizedBranchName = branch.replace(/\//g, "-");
@@ -48,31 +34,9 @@ export async function POST(request: NextRequest) {
         const fileSha = await githubService.getFileSha(htmlFilePath, branch);
         await githubService.createOrUpdateFile(
             htmlFilePath,
-            htmlReport,
+            htmlStory,
             branch,
             fileSha || undefined,
-        );
-
-        // docs 폴더 내 index.html 파일 생성: 위에서 만든 branch HTML 파일로 리다이렉트
-        const indexContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv="refresh" content="0;url=${sanitizedBranchName}.html" />
-  <title>Redirecting...</title>
-</head>
-<body>
-  <p>If you are not redirected automatically, <a href="${sanitizedBranchName}.html">click here</a>.</p>
-</body>
-</html>
-    `;
-        const indexFilePath = "docs/index.html";
-        const indexSha = await githubService.getFileSha(indexFilePath, branch);
-        await githubService.createOrUpdateFile(
-            indexFilePath,
-            indexContent,
-            branch,
-            indexSha || undefined,
         );
 
         return NextResponse.json({
