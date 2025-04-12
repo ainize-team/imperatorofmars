@@ -6,7 +6,7 @@ Okay, here is the content formatted as a README.md file:
 
 While Large Language Models (LLMs) have emerged as powerful tools in creative fields, issues like 'hallucination' and logical inconsistency limit their use in tasks requiring high fidelity. Additionally, large-scale collaborative projects involving multiple creators face challenges in maintaining content consistency, verifying contributions, and managing intellectual property (IP) rights.
 
-## Solution: Imperator of Mars
+## Solution: First-Order Logic is all you need.
 
 Imperator of Mars is a proposed framework designed to address these problems. Its core technologies include:
 
