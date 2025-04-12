@@ -9,6 +9,12 @@ export async function POST(request: NextRequest) {
         if (!branch) {
             return NextResponse.json({ error: "branch가 필요합니다." }, { status: 400 });
         }
+        if (branch === "main" || branch === "master" || branch === "dev" || branch === "develop") {
+            return NextResponse.json(
+                { error: `${branch} 브랜치는 사용할 수 없습니다.` },
+                { status: 400 },
+            );
+        }
 
         const githubService = new GitHubService();
 
