@@ -39,13 +39,11 @@ export default function Home() {
     const nodes = []
     const links = []
     for (const [cid, node] of Object.entries(mockNodes)) {
-      console.log('cid :>> ', cid);
       nodes.push(node);
       node.children.forEach((cid: string) => {
         links.push({ source: node.cid, target: cid, group: node.type === "hint" ? "dotted" : "solid" });
       })
     };
-    console.log('nodes, links :>> ', nodes, links);
 
     setNodes(nodes);
     setLinks(links);
