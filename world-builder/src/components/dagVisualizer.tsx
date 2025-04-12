@@ -64,7 +64,7 @@ export default function DagVisualizer({
       // Check if the node already exists
       if (!nodes.some((n: any) => n.cid === cid)) {
         const queue = [ {parent: null, cid} ];
-        const visitedCids = [];
+        const visitedCids: string[] = [];
 
         while (queue.length > 0) {
           const edge = queue.shift();
