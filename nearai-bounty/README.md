@@ -4,9 +4,15 @@
 
 ## Uploaded URL hosted by NEAR Hub: https://app.near.ai/profiles/kyungmoonleecomcom.near
 
-## Agent "Text2FOL"
+## Agent ["Text2FOL"](https://app.near.ai/agents/kyungmoonleecomcom.near/Text2FOL/latest)
+<p align="center">
+  <img src="./src/nearai_agent_text2fol.png" alt="Agent Text2FOL">
+</p>
 
-## Agent "FOL2HTML"
+## Agent ["FOL2HTML"](https://app.near.ai/agents/kyungmoonleecomcom.near/FOL2HTML/latest)
+<p align="center">
+  <img src="./src/nearai_agent_fol2html.png" alt="Agent FOL2HTML">
+</p>
 
 ## Agent "Story Chainer" (TBD. Intent Handler)
 
