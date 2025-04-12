@@ -128,27 +128,13 @@ export async function POST(request: NextRequest) {
     const folContents = chain.map((file) => file.content);
     console.log("folContents", folContents);
     console.log("htmlContents", docContents);
-    
-    // const pairedFolHtmlContents = folContents
-    //   .map(
-    //     (folContent, index) => `
-    // FOL file ${index + 1}:
-    // ${folContent}
 
-    // HTML conversion ${index + 1}:
-    // ${docContents[index]}
-    // `,
-    //   )
-    //   .join("\n");
     try {
       const response = await fetch('/api/gen-html', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ folContents: folContents, docContents: docContents }),
       });
-      // console.log("folContents", folContents);
-      // console.log("htmlContents", docContents);
-
 
       const result = await response.json();
       const htmlStory = result.htmlStory;
