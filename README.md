@@ -76,4 +76,40 @@ Imperator of Mars is a proposed framework designed to address these problems. It
 ---
 
 ### 🌐 Deployment
-👉 [https://imperatorofmars.ai](https://imperatorofmars.ai)
+👉 Published Story: [https://imperatorofmars.ai](https://imperatorofmars.ai)
+
+👉 World Builder Frontend: [https://imperator-of-mars.ainetwork.xyz/](https://imperator-of-mars.ainetwork.xyz/)
+
+
+## Q&A
+### Q: How can we make sure AI (LLM) story ideas follow the rules and fit the story?
+
+**A:** We use **First-Order Logic (FOL)**. These are clear, strict rules for the world, much more precise than normal language. The system checks new ideas against these rules automatically.
+
+* **Example from Demo:** If someone tried to say Mark launched *immediately* to Mars on a specific date (like "tomorrow" in the challenge example - April 12th, 2025), the system would check the FOL rules (e.g., a rule like `Fact: ¬LaunchWindow(Earth, Mars, "2025-04-12")`) and stop the idea if it breaks the rule, ensuring the story follows its own science about when launches are possible.
+
+### Q: How can we help writers of all ages and skills join in?
+
+**A:** Our **‘World Builder’** tool helps out! It gives writers helpful hints and automatically checks if their ideas follow the world's rules while they write.
+
+* **Example from Demo:** When a less experienced writer might try an impossible action (like launching immediately), the Builder provides feedback explaining *why* it breaks a rule (e.g., "Earth and Mars are too far apart right now!"). But it allows more experienced writers to add complex details (like orbital mechanics for the journey) as long as they *follow* the established FOL rules.
+
+### Q: How do we easily know who created an idea, maybe years later?
+
+**A:** The **DAG** (our story's permanent record) shows the history of every contribution, linked together. Plus, using **Story Protocol**, creators can register unique ideas as their own digital property (IP) right when they create them.
+
+* **Example from Demo:** User Echo discovered 'KryptoPlanet' (creating Node 5). They then used the Story Protocol MCP to register 'KryptoPlanet #001' as IP (creating Node 6, linked to Node 5). The DAG shows this sequence, and Story Protocol provides the on-chain proof of Echo's specific IP contribution, even if other users (F, G, etc.) add value later.
+
+### Q: What if people disagree about where the story should go next?
+
+**A:** No problem! The system lets writers **'fork'** the story. This means different ideas can branch off from the same point and be explored at the same time, like choosing different paths in a game.
+
+* **Example from Demo:** Facing the food shortage (Node 2), the story could stall if people argued about farming vs. exploring. Instead, User Gamma 'forked' to create the 'Potato Farming' path (Node 3 / Branch A), and User Delta 'forked' to create the 'Water Exploration' path (Node 4 / Branch B). Both valid, but different, strategies could then be developed in parallel.
+
+### Q: How can we be sure the story hasn't been secretly changed or messed with?
+
+**A:** Every piece of the story is locked together in the DAG using special math tricks (**Merkle Proofs** and a master hash code called the DAG State Root). This proves the entire story history is correct and secure, like a super-strong digital seal that changes if anything is tampered with.
+
+* **Example from Demo:** At the start, the DAG might have a State Root hash like `0xabc...def`. When Alpha added Node 1 (Mark's departure), the hash changed to `0x123...456`. When Beta added Node 2, it changed again. This constantly updating hash proves the integrity of the *entire* chain of events. Anyone can use a Merkle Proof to verify that a specific node (like Node 1) is authentically part of the history represented by the latest root hash.
+
+---
