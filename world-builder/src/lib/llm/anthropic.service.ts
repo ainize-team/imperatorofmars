@@ -18,7 +18,7 @@ export class AnthropicService {
     htmlContents: string[],
     docFiles: string[],
   ): Promise<string> {
-    console.log(docFiles);
+    console.log("docFiles", docFiles);
     const prevHtmlFile = docFiles[docFiles.length - 1];
     const prevHtmlFileTitle = prevHtmlFile
       .split("/")
@@ -41,26 +41,26 @@ export class AnthropicService {
     `,
       )
       .join("\n")}
-
-
-      /* 이전 스토리 버튼 스타일 */
-      a.prev-story {
+      /* Story button style (common for previous/next) */
+      a.story-btn {
         display: inline-block;
         padding: 8px 16px;
-        margin-top: 20px;
-        background-color: #d2b48c; /* 황갈색 계열로 버튼 배경 */
-        color: #ffffff; /* 흰색 글씨 */
+        margin: 10px auto; /* Top and bottom margin for center alignment */
+        background-color: #d2b48c; /* Yellow-brown color series */
+        color: #ffffff;
         text-decoration: none;
         border-radius: 4px;
         font-family: 'KoPub Batang', 'Noto Serif KR', serif;
         font-size: 1em;
         font-weight: bold;
         transition: background-color 0.3s ease;
+        text-align: center;
       }
 
-      a.prev-story:hover {
-        background-color: #a0522d; /* 호버시 시에나 계열 색상 */
+      a.story-btn:hover {
+        background-color: #a0522d; /* Sienna color series on hover */
       }
+
 
     The novel should have the following structure:
     1. DOCTYPE declaration
@@ -69,11 +69,66 @@ export class AnthropicService {
     4. Clean and professional design
     5. Include a link to the previous story at the top of the HTML content.
     The link should be in the format of 
-    <p><a class="prev-story" href="${prevHtmlFile}">Previous: ${prevHtmlFileTitle}</a></p>
+    <div style="text-align: center;">
+      <a class="story-btn" href="${prevHtmlFile}">Previous: ${prevHtmlFileTitle}</a>
+    </div>
     6. Include the following script at the end of the body: <script src="/page-linker.js"></script>
 
     Important: Each HTML conversion content must naturally connect with the previous content, and the overall storyline must flow consistently.
     Each section must evolve based on the previous section's content, and ultimately become a complete story.`;
+
+    const completion = await this.anthropic.messages.create({
+      model: "claude-3-opus-20240229",
+      max_tokens: 4000,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      temperature: 0.7,
+    });
+    return completion.content[0].type === "text" ? completion.content[0].text : "";
+  }
+
+  async appendNextButton(lastDocContent: string, nextHtmlFileName: string) {
+    const prompt = `
+    <Existing Content>
+    """
+    ${lastDocContent}
+    """
+    <Requirements>
+    Please add the button below without changing the existing content.
+
+    <Button Style>
+    a.story-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      margin: 10px auto; /* Top and bottom margin for center alignment */
+      background-color: #d2b48c; /* Yellow-brown color series */
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 4px;
+      font-family: 'KoPub Batang', 'Noto Serif KR', serif;
+      font-size: 1em;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+      text-align: center;
+    }
+
+    a.story-btn:hover {
+      background-color: #a0522d; /* Sienna color series on hover */
+    }
+
+    <div style="text-align: center;">
+      <a class="story-btn" href="${nextHtmlFileName}">Next: ${nextHtmlFileName.replace(
+      ".html",
+      "",
+    )}</a>
+    </div>
+
+    NOTE: Please output only in HTML format. (your output should start with '<!DOCTYPE html>')
+   `;
 
     const completion = await this.anthropic.messages.create({
       model: "claude-3-opus-20240229",

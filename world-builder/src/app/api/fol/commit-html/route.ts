@@ -139,6 +139,25 @@ export async function POST(request: NextRequest) {
         .pop()
         ?.replace(/\.fol$/, ".html") || "";
     const htmlFilePath = `docs/${tipHtmlFileName}`;
+
+    //docContents 와 sortedDocFiles 의 마지막 인덱스를 가져와서 안트로픽서비스 어펜트 next 버튼 메소드에 너허줘
+    const lastDocContent = docContents[docContents.length - 1];
+    const lastDocFile = sortedDocFiles[sortedDocFiles.length - 1];
+    const appendedPrevHtml = await anthropicService.appendNextButton(
+      lastDocContent,
+      tipHtmlFileName,
+    );
+
+    // 이전 HTML 파일 업데이트
+    const prevHtmlFilePath = `docs/${lastDocFile}`;
+    const prevFileSha = await githubService.getFileSha(prevHtmlFilePath, branch);
+    await githubService.createOrUpdateFile(
+      prevHtmlFilePath,
+      appendedPrevHtml,
+      branch,
+      prevFileSha || undefined,
+    );
+
     const existingFileSha = await githubService.getFileSha(htmlFilePath, branch);
     await githubService.createOrUpdateFile(
       htmlFilePath,
