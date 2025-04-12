@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       "Authorization": `Bearer ${JSON.stringify(authPayload)}`
     },
     body: JSON.stringify({
-      agent_id: "kyungmoonleecomcom.near/FOL2HTML/0.0.2", 
+      agent_id: "kyungmoonleecomcom.near/FOL2HTML/0.0.4", 
       new_message: pairedFolHtmlContents,
       max_iterations: "1"
     })
