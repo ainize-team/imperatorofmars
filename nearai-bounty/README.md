@@ -16,7 +16,7 @@
 
 ## Responses from Agents
 
-### Generated First-Order Logic from a Natural Language Prompt
+### Generated First-Order Logic from a Natural Language Prompt (TBA)
 
-### Generated HTML from the aforementioned First-Order Logic
+### Generated HTML from the aforementioned First-Order Logic (TBA)
 
