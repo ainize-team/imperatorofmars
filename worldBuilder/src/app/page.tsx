@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useSignMessage, useWalletClient } from "wagmi";
 import CryptoJS from "crypto-js";
 import toast from "react-hot-toast";
+import { LicenseTerms, WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
 import Navbar from "@/components/sections/Navbar";
 import FeedViewer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
@@ -13,7 +14,7 @@ import { generateCid } from "@/utils/crypto";
 import { useStory } from "@/lib/context/AppContext";
 import { defaultMetadata, SPG_NFT_CONTRACT_ADDRESS } from "@/lib/constants";
 import { uploadImageToIPFS, uploadJsonToIPFS } from "@/lib/functions/ipfs";
-import { Address } from "viem";
+import { Address, zeroAddress } from "viem";
 import { getFileHash } from "@/lib/functions/file";
 import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
 
@@ -53,34 +54,35 @@ export default function Home() {
       const newNode = {
         message: msg,
         type: "hint",
-        children: [lastNodeCid]
-      }
-      const cid = generateCid(newNode)
+        children: [lastNodeCid],
+      };
+      const cid = generateCid(newNode);
       hintNodes.push({
         ...newNode,
         cid,
         id: cid,
       });
 
-      hintLinks.push({source: cid, target: lastNodeCid, type: "dotted"});
+      hintLinks.push({ source: cid, target: lastNodeCid, type: "dotted" });
     });
     return {
-      hintNodes, hintLinks,
-    }
-  }
-  
+      hintNodes,
+      hintLinks,
+    };
+  };
+
   const handleInput = async () => {
     if (!input.trim()) return;
 
     const signature = await signMessage();
     if (!signature) return;
 
-    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input 
+    // TODO(kyungmoon): get FOL data using "src/app/api/gen-fol/route.ts" using input
     console.log("FRONT-END input :>> ", input);
     try {
-      const response = await fetch('/api/gen-fol', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/gen-fol", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
 
@@ -93,7 +95,7 @@ export default function Home() {
     }
 
     const cid = createNewNode(input, selectedNodes);
-    console.log('cid :>> ', cid);
+    console.log("cid :>> ", cid);
     setSelectedNodes([]);
 
     if (input.includes("KryptoPlanet")) {
@@ -123,7 +125,7 @@ export default function Home() {
       data: [],
       children: [] as any[],
       type: "message",
-    }
+    };
     const cid = generateCid(newNode);
     selectedNodes.forEach((node: any) => {
       newNode.children.push(node.cid);
@@ -131,23 +133,17 @@ export default function Home() {
 
     const { hintNodes, hintLinks } = makeHintNode(cid, ["감자 재배하기", "물 찾으러 가기"]);
 
-    setNodes(
-      (prevNodes: any) => 
-        [
-          ...prevNodes.filter((node: any) => node.type === "message"), 
-          {...newNode, cid, id: cid}, 
-          ...hintNodes
-        ]
-    );
+    setNodes((prevNodes: any) => [
+      ...prevNodes.filter((node: any) => node.type === "message"),
+      { ...newNode, cid, id: cid },
+      ...hintNodes,
+    ]);
     selectedNodes.forEach((node: any) => {
-      setLinks(
-        (prevLinks: any) => 
-          [
-            ...prevLinks.filter((link: any) => link.type !== "dotted"),
-            { source: cid, target: node.id },
-            ...hintLinks
-          ]
-      );
+      setLinks((prevLinks: any) => [
+        ...prevLinks.filter((link: any) => link.type !== "dotted"),
+        { source: cid, target: node.id },
+        ...hintLinks,
+      ]);
     });
     return cid;
   };
@@ -201,10 +197,31 @@ export default function Home() {
       { id: tid2 }
     );
 
-    // mint and register IPA
+    // mint and register IPA (use commercial remix)
+    const commercialRemixTerms: LicenseTerms = {
+      transferable: true,
+      royaltyPolicy: "0xBe54FB168b3c982b7AaE60dB6CF75Bd8447b390E", // RoyaltyPolicyLAP address from https://docs.story.foundation/docs/deployed-smart-contracts
+      defaultMintingFee: BigInt(10),
+      expiration: BigInt(0),
+      commercialUse: true,
+      commercialAttribution: true, // must give us attribution
+      commercializerChecker: zeroAddress,
+      commercializerCheckerData: zeroAddress,
+      commercialRevShare: 5, // can claim 50% of derivative revenue
+      commercialRevCeiling: BigInt(0),
+      derivativesAllowed: true,
+      derivativesAttribution: true,
+      derivativesApproval: false,
+      derivativesReciprocal: true,
+      derivativeRevCeiling: BigInt(0),
+      currency: WIP_TOKEN_ADDRESS,
+      uri: "",
+    };
+
     const tid3 = toast.loading("Minting and registering an IP Asset...");
-    const response = await client.ipAsset.mintAndRegisterIp({
+    const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
       spgNftContract: SPG_NFT_CONTRACT_ADDRESS,
+      licenseTermsData: [{ terms: commercialRemixTerms }],
       ipMetadata: {
         ipMetadataURI: `https://ipfs.io/ipfs/${ipIpfsCid}`,
         ipMetadataHash: `0x${ipMetadataHash}`,
@@ -225,7 +242,7 @@ export default function Home() {
 
   const handleInputOnChild = (message: string) => {
     setInput(message);
-  }
+  };
 
   const handleConfirmMint = async () => {
     setShowDialog(false);
