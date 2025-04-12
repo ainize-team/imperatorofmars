@@ -1,5 +1,3 @@
-Okay, here is the content formatted as a README.md file:
-
 # Imperator of Mars: A Framework for Collaboratively Created Worlds with Provable Logical Consistency
 
 ## Problem
