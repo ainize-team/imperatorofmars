@@ -34,5 +34,8 @@
 </p>
 
 
-### 2) Generated HTML from the aforementioned First-Order Logic (TBA)
+### 2) Generated HTML from the aforementioned First-Order Logic
+<p align="center">
+  <img src="./src/nearai_fol2html_res.png" alt="Fullview of Agent Hub page">
+</p>
 
