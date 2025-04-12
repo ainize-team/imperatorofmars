@@ -16,6 +16,18 @@
             background-color: #fff5f0;
             /* Pale background, slightly reddish */
             color: #4a4a4a;
+            padding: 0 20px;
+            /* 기본 좌우 여백 추가 */
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                margin: 20px auto;
+                padding: 0 20px;
+                /* 모바일에서도 좌우 여백 유지 */
+                max-width: 100%;
+            }
         }
 
         h1 {
