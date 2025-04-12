@@ -15,9 +15,18 @@ type props = {
   handleLinks: Function,
   selectedNodes: any[],
   handleSelectedNodes: Function,
+  handleInput: Function,
 }
 
-export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, selectedNodes, handleSelectedNodes }: props) {
+export default function DagVisualizer({ 
+  nodes, 
+  handleNodes, 
+  links,
+  handleLinks, 
+  selectedNodes, 
+  handleSelectedNodes,
+  handleInput,
+}: props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<any>(null);
   const [fetchingCid, setFetchingCid] = useState<string>('');
@@ -25,13 +34,17 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
 
   // Initialize API connection
   useEffect(() => {
-    const cid = "1f76cfcc484e26c8a61aaf5465c3fad759f847c93f6bbe50048b5556309d594e";
+    const cid = "ce70fe06306f47cee1fa8ce11134df823f1793108d17c522ce9e8c421fb9e3df";
     console.log('cid :>> ', cid);
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
     }
   }, []);
+
+  useEffect(() => {
+    console.log('nodes :>> ', nodes);
+  }, [nodes]);
 
   // Fetch node by CID
   const fetchNodeByCid = async (cid: string) => {
@@ -137,13 +150,26 @@ export default function DagVisualizer({ nodes, handleNodes, links, handleLinks, 
       .attr("fill", "#999")
       .attr("d", "M0,-5L10,0L0,5");
     
+      svg.append("defs").append("marker")
+      .attr("id", "dotted-arrow")
+      .attr("viewBox", "0 -5 10 10")
+      .attr("refX", 25)
+      .attr("refY", 0)
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("fill", "#333")
+      .attr("d", "M0,-5L10,0L0,5");
+
     // Draw links
     const link = svg.append("g")
       .selectAll("line")
       .data(linkData)
       .join("line")
-      .attr("stroke", "#999")
+      .attr("stroke", (d: any) => d.type === "dotted" ? "#333" : "#999")
       .attr("stroke-opacity", 0.6)
+      .attr("stroke-dasharray", d => d.type === "dotted" ? "4 2" : "none")
       .attr("stroke-width", 2)
       .attr("marker-end", "url(#arrow)");
     

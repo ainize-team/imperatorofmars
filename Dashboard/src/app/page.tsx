@@ -19,6 +19,12 @@ export default function Home() {
     setNodes((prevNodes: any) => [...prevNodes, newNode]);
   }
 
+  // const clearHintNodes = () => {
+  //   console.log('nodes :>> ', nodes);
+  //   setNodes((prevNodes: any) => [...prevNodes.filter((node: any) => node.type !== "hint")])
+  //   setLinks((prevLinks: any) => [...prevLinks.filter((link: any) => link.type !== "dotted")]);
+  // }
+
   const handleLinks = (newLink: any) => {
     setLinks((prevLinks: any) => [...prevLinks, newLink]);
   }
@@ -33,23 +39,58 @@ export default function Home() {
     });
   }
 
+  const makeHintNode = (lastNodeCid: string, hintMsgs: string[]) => {
+    const hintNodes: any[] = [];
+    const hintLinks: any[] = [];
+    hintMsgs.forEach((msg) => {
+      const newNode = {
+        message: msg,
+        type: "hint",
+        children: [lastNodeCid]
+      }
+      const cid = generateCid(newNode)
+      hintNodes.push({
+        ...newNode,
+        cid,
+        id: cid,
+      });
+
+      hintLinks.push({source: cid, target: lastNodeCid, type: "dotted"});
+    });
+    return {
+      hintNodes, hintLinks,
+    }
+  }
+  
   const handleInput = async () => {
     if (!input.trim()) return;
 
     const newNode = {
       message: input,
       data: [],
-      children: [] as any[]
+      children: [] as any[],
+      type: "message",
     }
     const cid = generateCid(newNode);
     selectedNodes.forEach((node: any) => {
       newNode.children.push(node.cid);
     });
-    setNodes((prevNodes: any) => [...prevNodes, {...newNode, cid, id: cid}])
+
+    const { hintNodes, hintLinks } = makeHintNode(cid, ["ABC Hint", "DEF Hint"]);
+
+    setNodes(
+      (prevNodes: any) => 
+        [
+          ...prevNodes.filter((node: any) => node.type === "message"), 
+          {...newNode, cid, id: cid}, 
+          ...hintNodes
+        ]
+    );
     selectedNodes.forEach((node: any) => {
       setLinks((prevLinks: any) => [
-        ...prevLinks, 
-        { source: cid, target: node.id }
+        ...prevLinks.filter((link: any) => link.type !== "dotted"), 
+        { source: cid, target: node.id },
+        ...hintLinks
       ]);
     })
 
@@ -83,6 +124,10 @@ export default function Home() {
     setInput("");
   };
 
+  const handleInputOnChild = (message: string) => {
+    setInput(message);
+  }
+
   return (
     <div className="flex flex-col h-full w-full gap-5">
       <Navbar />
@@ -95,7 +140,8 @@ export default function Home() {
           handleLinks={handleLinks} 
           handleNodes={handleNodes} 
           selectedNodes={selectedNodes} 
-          handleSelectedNodes={handleSelectedNodes} 
+          handleSelectedNodes={handleSelectedNodes}
+          handleInput={handleInputOnChild}
         />
         <FeedVeiwer />
       </div>
