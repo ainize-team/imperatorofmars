@@ -39,9 +39,9 @@
   <img src="./src/nearai_fol2html_res.png" alt="Fullview of Agent Hub page">
 </p>
 
-## C) Intent Generation (TBD)
+## C) Intent Handling (TBD)
 ### Grwoing potatoes? or Seeking for water outside?
 
 
-## D) Benchmark Evaluation (TBD)
-### Research is required... 
+## D) [Quantitative Benchmark](https://docs.near.ai/models/benchmarks_and_evaluations/) (TBD)
+### 에이전트 조합에 대한 성능 테이블이 보여질 예정이며, 튜토리얼 보고 적용 예정.
