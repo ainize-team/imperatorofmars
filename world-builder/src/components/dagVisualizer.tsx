@@ -33,7 +33,7 @@ export default function DagVisualizer({
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
   useEffect(() => {
-    const cid = "84f457f76039d15a97703adfb672bba75fa86e6ac74f5a12679a96ecc4edfb96";
+    const cid = "d70f3fd2d671f3c9b62e27aabc73152af5d97a2f9cecfcc630aad3f79193d7ba";
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
