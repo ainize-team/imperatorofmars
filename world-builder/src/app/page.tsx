@@ -77,7 +77,6 @@ export default function Home() {
   const handleInput = async () => {
     if (!input.trim()) return;
 
-    const parentHash = selectedNode.cid;
     const signature = await signMessage();
     if (!signature) return;
 
@@ -85,7 +84,12 @@ export default function Home() {
     if (!FOL) return;
 
     // FIXME(yoojin): change title from getFOL
-    await createPullRequest(signature, parentHash, FOL, "Title");
+    await createPullRequest({
+      signature,
+      parentHash: selectedNode? selectedNode.cid : "0x1234",
+      FOL,
+      title: input
+    });
 
     const newNode = createNewNode(input);
     setSelectedNode(newNode);
@@ -174,7 +178,17 @@ export default function Home() {
     return {...newNode, cid, id: cid};
   };
 
-  const createPullRequest = async (signature: string, parentHash: string, FOL: string, title: string) => {
+  const createPullRequest = async ({
+    signature,
+    FOL,
+    title,
+    parentHash,
+  }: {
+    signature: string,
+    FOL: string,
+    title: string
+    parentHash?: string,
+  }) => {
     try {
       const res = await fetch("/api/fol/pull-request", {
         method: "POST",
@@ -186,7 +200,7 @@ export default function Home() {
           parentHash,
         }),
       })
-      console.log('res.json() :>> ', res.json());
+      console.log('res.json() :>> ', await res.json());
       return;
     } catch (error) {
       console.error("Error create PR:", error);
