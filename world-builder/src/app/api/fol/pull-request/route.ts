@@ -174,6 +174,7 @@ ${contents}`;
     return NextResponse.json({
       message: "PR creation successful",
       pullRequestLink: pullRequest.html_url,
+      hash: newFileHash,
     });
   } catch (error) {
     console.error("Error in create-file API:", error);
