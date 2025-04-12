@@ -33,7 +33,7 @@ export default function DagVisualizer({
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
   useEffect(() => {
-    const cid = "9d5c0ec6bd88c06ddf1f4e696fd338c9844fa74ecd5803c5665bf8475441b2a2";
+    const cid = "d70f3fd2d671f3c9b62e27aabc73152af5d97a2f9cecfcc630aad3f79193d7ba";
     if (cid) {
       setFetchingCid(cid);
       fetchNodeByCid(cid);
@@ -77,14 +77,14 @@ export default function DagVisualizer({
                 id: nodeResult.cid,
                 cid: nodeResult.cid,
                 message: nodeResult.message || `Child of ${nodeResult.cid.substring(0, 6)}`,
-                type: 'message',
+                type: nodeResult.type,
                 children: nodeResult.children || [],
                 data: nodeResult.data
               };
               
               handleNodes(node);
               if (edge!.parent) {
-                handleLinks({source: edge!.parent, target: node.id})
+                handleLinks({source: edge!.parent, target: node.id, type: node.type === "hint" ? "dotted" : "solid"})
               }
               // Add child nodes to the queue
               node.children.map((childCid: string) => {
