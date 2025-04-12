@@ -1,15 +1,29 @@
 "use client";
 import toast from "react-hot-toast";
 import { useState } from "react";
+import { useSignMessage } from "wagmi";
 import Navbar from "@/components/sections/Navbar";
 import FeedVeiwer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
+  const { signMessageAsync } = useSignMessage();
 
   const handleInput = async () => {
     if (!input.trim()) return;
+
+    const message = "Sign this message to verify you’re the owner.";
+    let signature: string;
+
+    try {
+      signature = await signMessageAsync({ message });
+      console.log("signature created:", signature);
+    } catch (err) {
+      console.error("signature failed or was rejected:", err);
+      toast.error("Signature is required to continue.");
+      return;
+    }
 
     const tid1 = toast.loading("Uploading image to IPFS...");
     // TODO(jiyoung): upload image to IPFS
@@ -26,7 +40,10 @@ export default function Home() {
     // TODO(jiyoung): created ip metadata
     // TODO(jiyoung): upload json metadata to IPFS
     await new Promise((res) => setTimeout(res, 3000));
-    toast.success('IP metadata created: { name: "KryptoPlanet #001", description: "화성 에레보스 평원 발견...", image: "ipfs://QmArkData..." }', { id: tid2 });
+    toast.success(
+      'IP metadata created: { name: "KryptoPlanet #001", description: "화성 에레보스 평원 발견...", image: "ipfs://QmArkData..." }',
+      { id: tid2 }
+    );
 
     // TODO(jiyoung): sign with wallet
     // ...
@@ -36,7 +53,10 @@ export default function Home() {
     // ref1: https://docs.story.foundation/sdk-reference/ipasset#mintandregisteripassetwithpilterms
     // ref2: https://docs.story.foundation/concepts/programmable-ip-license/pil-flavors#flavor-%231%3A-non-commercial-social-remixing
     await new Promise((res) => setTimeout(res, 3000));
-    toast.success('IPA "KryptoPlanet #001" successfully registered on Story Protocol! IPA ID: 0xArkIPAssetAddress…', { id: tid3 });
+    toast.success(
+      'IPA "KryptoPlanet #001" successfully registered on Story Protocol! IPA ID: 0xArkIPAssetAddress…',
+      { id: tid3 }
+    );
 
     setInput("");
   };
