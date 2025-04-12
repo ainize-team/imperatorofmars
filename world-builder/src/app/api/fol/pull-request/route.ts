@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
+    const processed_title = title.replace(/\s+/g, "-");
     const githubService = new GitHubService();
 
     const baseSha = await githubService.getMainBranchSha();
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       .digest("hex");
 
     // 7. 새 파일명은 "{newIdentifier}_{title}.fol" 형식
-    const name = `${newIdentifier}_${title}`;
+    const name = `${newIdentifier}_${processed_title}`;
     const newFileName = `${name}.fol`;
     const newFilePath = `fol/${newFileName}`;
 
