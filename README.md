@@ -17,7 +17,7 @@ Imperator of Mars is a proposed framework designed to address these problems. It
 
 ![Imperator of Mars Architecture](./images/imperator_of_mars_architecture.png)
 
-### World Builder Fronted
+### 1. World Builder Fronted
 
 - **Dashboard**: view overall story contributions
 - **FOL Rules**: list of logical assertions and formulas
@@ -25,16 +25,16 @@ Imperator of Mars is a proposed framework designed to address these problems. It
 
 ---
 
-### 🤖 Agents
+### 2. 🤖 Agents
 
-### 1. **World Builder Agent**
+#### **World Builder Agent**
 - Decides high-level direction and future events.
 - Example FOL:
   ```
   ∃t (Year(t) ∧ t = 2027 ∧ PossibleTravel(Mars, Earth, t))
   ```
 
-### 2. **FOL Writer Agent**
+#### **FOL Writer Agent**
 - Transforms natural exploration goals into FOL representation.
 - Example FOL:
   ```
@@ -48,37 +48,27 @@ Imperator of Mars is a proposed framework designed to address these problems. It
   )
   ```
 
-### 3. **Fiction Writer Agent**
+#### **Fiction Writer Agent**
 - Converts FOL into readable HTML fiction (Markdown, HTML).
-- Outputs files like: `chapter2-departure.html`
+- Outputs files like: `0_genesis.html`
 
 ---
 
-### 🧪 GitHub + MCP Integration
+### 3. GitHub
 
-### 📂 Files
-- FOL logic files (e.g. `chapter2-departure.fol`)
-- Published stories (e.g. `chapter2-departure.html`)
+#### Files
+- FOL logic files (e.g. `fol/0_genesis.fol`)
+- Published stories (e.g. `docs/0_genesis.html`)
 
-### 🧠 GitHub Actions
+#### GitHub Actions
 - Automatically runs `verifyFOL()` to validate logic.
 - On success: merges contributions.
 
 ---
 
-### 🔌 MCP Servers
+### 4. MCP Servers (Story Protocol)
 
-### ♻️ `story-mcp`
-- Handles AI-to-AI messaging and task validation.
-- Routes:
-  - FOL writing
-  - Fiction generation
-  - IP minting
-
----
-
-## 🔗 Story Protocol (Web3)
-
+### `story-mcp`
 - Once a story milestone is reached (e.g. `IsKryptoPlanet(x)`), the asset can be:
   - Minted via `Mint KryptoPlanet`
   - Stored as onchain IP using **Story Protocol**
@@ -86,25 +76,4 @@ Imperator of Mars is a proposed framework designed to address these problems. It
 ---
 
 ### 🌐 Deployment
-
-### 📘 GitHub Pages
-- The HTML story file is deployed on GitHub Pages.
-- Example:
-  ```
-  https://imperatorofmars.com/chapter2-departure.html
-  ```
-
----
-
-## 🔀 Narrative Flow Summary
-
-1. User wants to explore Mars (2027 travel logic).
-2. Exploration happens on water ice.
-3. Agent finds a **KryptoPlanet**.
-4. FOL writer expresses this in logic.
-5. Story is written, validated, and deployed.
-6. The discovery is **minted as IP** via Story Protocol.
-
-
-## 🚰 Live Story
-👉 [https://imperatorofmars.com](https://imperatorofmars.com)
+👉 [https://imperatorofmars.ai](https://imperatorofmars.ai)
