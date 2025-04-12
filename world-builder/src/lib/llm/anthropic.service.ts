@@ -41,7 +41,8 @@ export class AnthropicService {
     `,
       )
       .join("\n")}
-      /* Story button style (common for previous/next) */
+
+      <Button Style CSS>
       a.story-btn {
         display: inline-block;
         padding: 8px 16px;
@@ -60,8 +61,9 @@ export class AnthropicService {
       a.story-btn:hover {
         background-color: #a0522d; /* Sienna color series on hover */
       }
+      </Button Style CSS>
 
-
+    <Requirements>
     The novel should have the following structure:
     1. DOCTYPE declaration
     2. UTF-8 encoding
@@ -72,7 +74,8 @@ export class AnthropicService {
     <div style="text-align: center;">
       <a class="story-btn" href="${prevHtmlFile}">Previous: ${prevHtmlFileTitle}</a>
     </div>
-    6. Include the following script at the end of the body: <script src="/page-linker.js"></script>
+    6. include the button style css in the head section
+    7. Include the following script at the end of the body: <script src="/page-linker.js"></script>
 
     Important: Each HTML conversion content must naturally connect with the previous content, and the overall storyline must flow consistently.
     Each section must evolve based on the previous section's content, and ultimately become a complete story.`;
