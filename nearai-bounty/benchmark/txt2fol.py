@@ -80,7 +80,7 @@ for message in tqdm(message_list):
         print(f"Error: Received status code {response.status_code} for message: {message}")
 
 # Save results to JSON
-with open('./fol_results_v2.json', 'w', encoding='utf-8') as f:
+with open('./fol_results_v4.json', 'w', encoding='utf-8') as f:
     json.dump(fol_results, f, indent=4, ensure_ascii=False)
 
 print("Results saved to fol_results.json")
