@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { GitHubService } from "@/lib/llm/github.service";
+import { AnthropicService } from "@/lib/llm/anthropic.service";
 
 // A function that extracts the "hash:" value from the file content (its own hash) (from the metadata)
 function parseHash(content: string): string | null {
@@ -83,7 +84,12 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    const processed_title = title.replace(/\s+/g, "-");
+
+    const anthropicService = new AnthropicService();
+    const shortenedTitle = await anthropicService.shortenTitle(title);
+
+    // 2. Process the title: replace spaces with hyphens
+    const processed_title = shortenedTitle.replace(/\s+/g, "-");
     const githubService = new GitHubService();
 
     const baseSha = await githubService.getMainBranchSha();

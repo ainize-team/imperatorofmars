@@ -207,4 +207,24 @@ Please respond in the following JSON format:
     });
     return completion.content[0].type === "text" ? completion.content[0].text : "";
   }
+
+  async shortenTitle(title: string) {
+    const prompt = `
+    Please shorten the title to 10 characters or less in lowercase.
+    ${title}
+    `;
+
+    const completion = await this.anthropic.messages.create({
+      model: "claude-3-opus-20240229",
+      max_tokens: 1000,
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    return completion.content[0].type === "text" ? completion.content[0].text : "";
+  }
 }
