@@ -36,18 +36,22 @@ export default function Home() {
   const { client } = useStory();
 
   useEffect(() => {
-    const nodes = []
-    const links = []
+    const nodes = [];
+    const links = [];
     for (const [cid, node] of Object.entries(mockNodes)) {
       nodes.push(node);
       node.children.forEach((cid: string) => {
-        links.push({ source: node.cid, target: cid, group: node.type === "hint" ? "dotted" : "solid" });
-      })
-    };
+        links.push({
+          source: node.cid,
+          target: cid,
+          group: node.type === "hint" ? "dotted" : "solid",
+        });
+      });
+    }
 
     setNodes(nodes);
     setLinks(links);
-  }, [])
+  }, []);
 
   const handleNodes = (newNode: any) => {
     setNodes((prevNodes: any) => [...prevNodes, newNode]);
@@ -100,25 +104,33 @@ export default function Home() {
     if (!signature) return;
 
     // resTxt2Fol: { fol: string, title: string }
+    const loadingToast = toast.loading("FOL 생성 중...");
     const resTxt2Fol = await getFOL(input);
-    if (!resTxt2Fol) return;
+    if (!resTxt2Fol) {
+      toast.error("FOL 생성 실패", { id: loadingToast });
+      return;
+    }
+    toast.success("FOL 생성 완료", { id: loadingToast });
+
     const FOL = resTxt2Fol.fol;
     const folTitle = resTxt2Fol.title;
 
-    // FIXME(yoojin): change title from getFOL
+    const prToast = toast.loading("Pull Request 생성 중...");
     const newCid = await createPullRequest({
       signature,
       parentHash: selectedNode ? selectedNode.cid : "0x1234",
       FOL,
       title: folTitle,
     });
+    toast.success("Pull Request 생성 완료", { id: prToast });
 
     const newNode = createNewNode(input, newCid);
     setSelectedNode(newNode);
 
-    // FIXME(jiyoung): this should trigger when a new FOL is found
     if (input.toLowerCase().includes("water")) {
+      const discoveryToast = toast.loading("발견된 스토리 분석 중...");
       setShowDialog(true);
+      toast.success("발견된 스토리 분석 완료", { id: discoveryToast });
       return;
     }
 
@@ -126,7 +138,7 @@ export default function Home() {
   };
 
   const signMessage = async () => {
-    const message = "Sign this message to verify you’re the owner.";
+    const message = "Sign this message to verify you're the owner.";
     try {
       const signature = await signMessageAsync({ message });
       console.log("signature created:", signature);
@@ -169,11 +181,7 @@ export default function Home() {
     };
     const { hintNodes, hintLinks } = makeHintNode(cid, mockHintNodes[input] || []);
 
-    setNodes((prevNodes: any) => [
-      ...prevNodes,
-      newNode,
-      ...hintNodes,
-    ]);
+    setNodes((prevNodes: any) => [...prevNodes, newNode, ...hintNodes]);
 
     if (selectedNode) {
       console.log("selectedNode in createnewnode :>> ", selectedNode);
@@ -302,7 +310,7 @@ export default function Home() {
     name: string,
     description: string,
     image: File,
-    imageUrl: string
+    imageUrl: string,
   ): Promise<any> => {
     const toastId = toast.loading("Creating IP metadata...");
 
@@ -332,7 +340,7 @@ export default function Home() {
     ipIpfsCid: string,
     ipMetadataHash: string,
     nftIpfsCid: string,
-    nftMetadataHash: string
+    nftMetadataHash: string,
   ) => {
     const toastId = toast.loading("Minting and registering an IP Asset...");
 
@@ -355,8 +363,7 @@ export default function Home() {
   };
 
   // FIXME(jiyoung): not working in mint_and_register_ip_with_terms() tool
-  const mintNFTWithMCP = async () => {
-  };
+  const mintNFTWithMCP = async () => {};
 
   const handleCancelMint = () => {
     setShowDialog(false);
