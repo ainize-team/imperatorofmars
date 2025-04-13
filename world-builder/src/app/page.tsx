@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useSignMessage, useWalletClient } from "wagmi";
 import CryptoJS from "crypto-js";
 import toast from "react-hot-toast";
-import { LicenseTerms, WIP_TOKEN_ADDRESS } from "@story-protocol/core-sdk";
 import Navbar from "@/components/sections/Navbar";
 import FeedViewer from "@/components/feedViewer";
 import FOLViewer from "@/components/folViewer";
@@ -18,10 +17,16 @@ import {
   DEFAULT_NFT_METADATA,
   SPG_NFT_CONTRACT_ADDRESS,
 } from "@/lib/constants";
-import { Address, zeroAddress } from "viem";
+import { Address } from "viem";
 import { getFileHash } from "@/lib/functions/file";
 import mockNodes, { mockHintNodes } from "@/moks/mockNodes";
 import DiscoveryDialog from "@/components/sections/DiscoveryDialog";
+import { delay } from "@/utils/time";
+import {
+  extractRegistrationMetadata,
+  parseClaudeRawOutputToMessage,
+  readStreamAsText,
+} from "@/utils/stream";
 
 export default function Home() {
   const [input, setInput] = useState<string>("");
@@ -222,9 +227,9 @@ export default function Home() {
           title,
           parentHash,
         }),
-      })
+      });
       const data = await res.json();
-      console.log('res.json() :>> ', data);
+      console.log("res.json() :>> ", data);
       return data.hash;
     } catch (error) {
       console.error("Error create PR:", error);
@@ -253,7 +258,7 @@ export default function Home() {
   }) => {
     setShowDialog(false);
     if (useMcp) {
-      // await mintNftWithMCP();
+      await mintNFTWithMCP(imageUrl, name, description);
     } else {
       await mintNFTWithSDK(imageUrl, name, description);
     }
@@ -362,8 +367,93 @@ export default function Home() {
     });
   };
 
-  // FIXME(jiyoung): not working in mint_and_register_ip_with_terms() tool
-  const mintNFTWithMCP = async () => {};
+  const mintNFTWithMCP = async (imageUrl: string, name: string, description: string) => {
+    const toast1 = toast.loading("Uploading image to IPFS...");
+    try {
+      // Step 1: upload_image_to_ipfs
+      const resp1 = await fetch("/api/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: `Call upload_image_to_ipfs() with image_data=${imageUrl}` }),
+      });
+      const text1 = await readStreamAsText(resp1.body!);
+      console.log(text1);
+
+      const ipfsUriMatch = text1.match(/ipfs:\/\/[a-zA-Z0-9]+/);
+      const ipfsUri = ipfsUriMatch
+        ? ipfsUriMatch[0]
+        : "ipfs://QmX7cVQrc8tgDVcGRaC9sTttH2Xrbc2a4REsvJQkJa6B4z";
+      console.log("Image IPFS URI: ", ipfsUri);
+
+      const result1 = parseClaudeRawOutputToMessage(text1);
+      toast.success(`🤖 IPFS Uploaded: ${result1}`, { id: toast1 });
+      await delay(5000);
+
+      // Step 2: create_ip_metadata
+      const toast2 = toast.loading("Creating IP metadata...");
+      const res2 = await fetch("/api/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `Call create_ip_metadata() with image_uri=${ipfsUri}, name=${name}, description=${description}`,
+        }),
+      });
+      const text2 = await readStreamAsText(res2.body!);
+      console.log(text2);
+
+      const metadata = extractRegistrationMetadata(text2);
+
+      const ipMetadata = {
+        ipMetadataURI: metadata.ip_metadata_uri,
+        ipMetadataHash: metadata.ip_metadata_hash,
+        nftMetadataURI: metadata.nft_metadata_uri,
+        nftMetadataHash: metadata.nft_metadata_hash,
+      };
+      console.log(ipMetadata);
+
+      const result2 = parseClaudeRawOutputToMessage(text2);
+      toast.success(`🤖 Metadata created: ${result2}`, { id: toast2 });
+      await delay(5000);
+
+      // Step 3: mint_and_register_ip_with_terms
+      const toast3 = toast.loading("Minting and registering IP asset...");
+      const res3 = await fetch("/api/mcp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: `Call mint_and_register_ip_with_terms() with commercial_rev_share=5, derivatives_allowed=true, registration_metadata=${JSON.stringify(
+            ipMetadata
+          )}, spg_nft_contract=${SPG_NFT_CONTRACT_ADDRESS}`,
+        }),
+      });
+      const text3 = await readStreamAsText(res3.body!);
+      console.log(text3);
+
+      const txHashMatch = text3.match(/Transaction Hash: ([a-fA-F0-9]+)/);
+      const tokenIdMatch = text3.match(/Token ID: (\d+)/);
+      const explorerUrlMatch = text3.match(
+        /(https:\/\/aeneid\.explorer\.story\.foundation\/ipa\/[a-zA-Z0-9x]+)/
+      );
+
+      const txHash = txHashMatch ? txHashMatch[1] : "";
+      const tokenId = tokenIdMatch ? tokenIdMatch[1] : "";
+      const explorerUrl = explorerUrlMatch ? explorerUrlMatch[0] : "";
+
+      console.log({ txHash, tokenId, explorerUrl });
+
+      const result3 = parseClaudeRawOutputToMessage(text3);
+      toast.success(`🎉 IP Registered! ${result3}`, { id: toast3 });
+
+      console.log("✅ MCP Mint Complete:", {
+        step1: text1,
+        step2: text2,
+        step3: text3,
+      });
+    } catch (err) {
+      console.error("MCP mint error:", err);
+      toast.error("Something went wrong during MCP minting.");
+    }
+  };
 
   const handleCancelMint = () => {
     setShowDialog(false);
