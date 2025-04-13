@@ -56,7 +56,6 @@ export default function FeedViewer() {
         }
         const data = await res.json();
         if (data.nodePRs && data.nodePRs.length > 0) {
-          // Exclude unnecessary user information and set
           const prList: PRItemProps[] = data.nodePRs.map((pr: any) => ({
             number: pr.number,
             title: pr.title,
@@ -70,7 +69,19 @@ export default function FeedViewer() {
         setError(err.message);
       }
     }
+
+    // 초기 로드
     fetchFeed();
+
+    // 2초마다 폴링
+    const intervalId = setInterval(fetchFeed, 2000);
+
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   return (
