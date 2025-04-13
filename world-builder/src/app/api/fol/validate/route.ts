@@ -1,3 +1,4 @@
+import { AnthropicService } from "@/lib/llm/anthropic.service";
 import { NextRequest, NextResponse } from "next/server";
 
 interface FolFile {
@@ -5,24 +6,10 @@ interface FolFile {
   content: string;
 }
 
-// Example LLM-based consistency check logic (actual implementation would involve external API integration)
-function validateFolContent(content: string): { valid: boolean; reason?: string } {
-  // Very simple check example: if a forbidden keyword is present, it fails
-  if (content.includes("undefinedPredicate")) {
-    return {
-      valid: false,
-      reason: "❌ 'undefinedPredicate' is an undefined predicate.",
-    };
-  }
-
-  // if (!content.includes("IsPlanet")) {
-  //     return {
-  //         valid: false,
-  //         reason: "❌ At least one 'IsPlanet' definition is required.",
-  //     };
-  // }
-
-  return { valid: true };
+async function validateFolContent(content: string): Promise<{ valid: boolean; reason?: string }> {
+  const anthropicService = new AnthropicService();
+  const response = await anthropicService.verifyFol([], content);
+  return response;
 }
 
 export async function POST(req: NextRequest) {
@@ -34,14 +21,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "files array is required." }, { status: 400 });
     }
 
-    const results = files.map(({ path, content }) => {
-      const result = validateFolContent(content);
-      return {
-        path,
-        valid: result.valid,
-        reason: result.reason || "✅ Consistency OK",
-      };
-    });
+    const results = await Promise.all(
+      files.map(async ({ path, content }) => {
+        const result = await validateFolContent(content);
+        return {
+          path,
+          valid: result.valid,
+          reason: result.reason || "✅ Consistency OK",
+        };
+      }),
+    );
 
     const hasError = results.some((r) => !r.valid);
 
