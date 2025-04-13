@@ -105,5 +105,7 @@ const messageResponse = await fetch(`https://api.near.ai/v1/threads/${threadId}/
 const messageResult = await messageResponse.json();
 ```
 
-# Req3: "Quantitative Benchmarks for Agent Performance" (TBD)
-## 에이전트 조합에 대한 성능 테이블이 보여질 예정이며, [튜토리얼](https://docs.near.ai/models/benchmarks_and_evaluations) 보고 적용 예정.
+# Req3: Quantitative Benchmarks for Agent Performance
+### To quantitatively benchmark our agents, we developed an automated pipeline for verifying the logical consistency of First-Order Logic (FOL) outputs from the Text2FOL agent.
+### Specifically, our module converts generated FOL statements into SMT-LIB format for direct compatibility with the Z3 theorem prover via its Python API, enabling efficient consistency checks.
+### We then evaluated the logical consistency of generated statements across diverse user inputs of varying lengths and complexities.
