@@ -17,6 +17,12 @@ By safeguarding the ownership of the **creative building blocks** they produce, 
 - Register NFTs as formal IP in the Story Blockchain
 - Set commercial-remix licensing with derivative works support
 - Verify ownership through MetaMask
+- Implement mcp client and integrate with [story-sdk-mcp server](https://github.com/piplabs/story-mcp-hub)
+
+> _⚙️ As a hackathon challenge, we also implemented a custom mcp-client to interact with the story-sdk-mcp server for minting. Although not used in the final stable flow due to reliability concerns, this experiment helped us better understand the protocol and lays the groundwork for further testing and improvements._
+
+![mcp1](./image/3_1_mcp.png)
+![mcp2](./image/3_2_mcp.png)
 
 ## Demo Scenario: Claiming IP for the KryptoPlanet Discovery
 
@@ -26,11 +32,11 @@ Every action updates the **narrative DAG**, and sometimes, a discovery is so sig
 ### 🧭 Step 0. Diverging Paths – Potato Farming vs. Water Exploration
 
 > Two users, **Gamma** and **Delta**, commit to different futures at Node 2.
+>
 > - Gamma chooses **Potato Farming** (Path A)
 > - Delta chooses **Water Exploration** (Path B)
 
 Both actions are signed through wallet signatures and committed, creating new branches in the narrative DAG.
-
 
 ### ❄️ Step 1. A Monumental Discovery – Echo’s Turn
 
@@ -43,11 +49,13 @@ This is recorded in **DAG Node**, and immediately recognized as a potential **IP
 ![step0](./image/0_discover_asset.png)
 
 ### 📦 Step 2. Uploading the Discovery Asset to IPFS
+
 The discovery is visualized and described (text, concept art, scientific notes) and uploaded to IPFS:
 
 ![step1_1](./image/1_1_upload_ipfs.png)
 
 ### 🪙 Step 3. Mint and Register IP via Story Protocol
+
 Echo mints the asset as an NFT and formally registers it as IP using the Story SDK:
 
 ```ts
@@ -64,13 +72,13 @@ const response = await client.ipAsset.mintAndRegisterIpAssetWithPilTerms({
 });
 console.log(`IPA created at tx hash ${response.txHash}, IPA ID: ${response.ipId}`);
 ```
+
 This locks authorship and gives Echo on-chain credit for the discovery.
 
 ![step2_1](./image/2_1_mint_register_ip.png)
 ![step2_2](./image/2_2_metamask.png)
 [![step2_3](./image/2_3_story_explorer.png)](https://aeneid.explorer.story.foundation/ipa/0x343424AB42d181FA34b10B53c9702cD2c30D2082)
-*Click to navigate to Story Explorer*
-
+_Click to navigate to Story Explorer_
 
 ### 📄 Step 4. Licensing the Asset for Derivative Use
 
@@ -104,7 +112,14 @@ The discovery of KryptoPlanet is no longer just a moment in a story—it’s **p
 With Story Protocol, builders like Echo become recognized co-authors of the _Imperator of Mars_ universe.
 
 ## Tech Stack
+
 - Story Protocol SDK
 - IPFS
 - Next.js
 - MetaMask
+
+## Future Work
+
+- Improve robustness of the custom mcp-client integration
+- Add automated testing around asset registration and licensing flows
+- Explore alternative wallet integrations for broader user support
