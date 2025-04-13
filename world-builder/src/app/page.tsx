@@ -41,8 +41,8 @@ export default function Home() {
   const { client } = useStory();
 
   useEffect(() => {
-    const nodes = [];
-    const links = [];
+    const nodes: any[] = [];
+    const links: any[] = [];
     for (const [cid, node] of Object.entries(mockNodes)) {
       nodes.push(node);
       node.children.forEach((cid: string) => {
